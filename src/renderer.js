@@ -9,14 +9,21 @@ export const FONT = 'JetBrains Mono';
 const CELL_RATIO = 1.9; // cell height / cell width
 const ADVANCE = 0.6; // JetBrains Mono advance width in em
 
-export function createRenderer(stage, grid) {
+const MAX_CANVAS_W = 8192; // keeps the long world canvas inside every browser's limits
+
+// stage: element whose size decides the cell size. viewCols: how many columns must fit
+// across it (the canvas itself can be wider). cell: borrow another renderer's cell size.
+export function createRenderer(stage, grid, { viewCols = grid.cols, cell = null, className = 'world' } = {}) {
+  const layer = document.createElement('div');
+  layer.className = className;
   const main = document.createElement('canvas');
   const glowNear = document.createElement('canvas');
   const glowFar = document.createElement('canvas');
   main.className = 'layer main';
   glowNear.className = 'layer glow near';
   glowFar.className = 'layer glow far';
-  stage.append(glowFar, glowNear, main);
+  layer.append(glowFar, glowNear, main);
+  stage.append(layer);
 
   const ctx = main.getContext('2d');
   const nearCtx = glowNear.getContext('2d');
@@ -27,21 +34,27 @@ export function createRenderer(stage, grid) {
   const prevFg = new Uint8Array(n);
 
   let cw = 0, chH = 0; // cell size in device pixels
+  let dpr = 1;
   let atlas, actx, slots, nextSlot, atlasCols;
   let glowOn = true;
 
   function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    const availW = stage.clientWidth * dpr;
-    const availH = stage.clientHeight * dpr;
-    cw = Math.max(2, Math.floor(Math.min(availW / grid.cols, availH / (grid.rows * CELL_RATIO))));
-    chH = Math.round(cw * CELL_RATIO);
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    if (cell) {
+      ({ w: cw, h: chH } = cell());
+    } else {
+      const availW = stage.clientWidth * dpr;
+      const availH = stage.clientHeight * dpr;
+      cw = Math.floor(Math.min(availW / viewCols, availH / (grid.rows * CELL_RATIO), MAX_CANVAS_W / grid.cols));
+      cw = Math.max(2, cw);
+      chH = Math.round(cw * CELL_RATIO);
+    }
 
     main.width = grid.cols * cw;
     main.height = grid.rows * chH;
     const cssW = main.width / dpr;
     const cssH = main.height / dpr;
-    for (const c of [main, glowNear, glowFar]) {
+    for (const c of [layer, main, glowNear, glowFar]) {
       c.style.width = cssW + 'px';
       c.style.height = cssH + 'px';
     }
@@ -49,7 +62,7 @@ export function createRenderer(stage, grid) {
     glowNear.height = Math.ceil(main.height / 3);
     glowFar.width = Math.ceil(main.width / 8);
     glowFar.height = Math.ceil(main.height / 8);
-    stage.style.setProperty('--cell-css', cw / dpr + 'px');
+    layer.style.setProperty('--cell-css', cw / dpr + 'px');
 
     // Fresh atlas for the new cell size.
     atlasCols = 64;
@@ -128,7 +141,10 @@ export function createRenderer(stage, grid) {
   return {
     paint,
     resize,
+    layer,
     get cell() { return { w: cw, h: chH }; },
+    // Cell size in CSS pixels, for positioning things over the canvas.
+    get cssCell() { return { w: cw / dpr, h: chH / dpr }; },
     // Grid cell under a point on screen, or null outside the canvas.
     cellAt(clientX, clientY) {
       const r = main.getBoundingClientRect();

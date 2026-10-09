@@ -78,3 +78,36 @@ The whole brief was handed over as one context file. Phase 0's instruction, in s
 ### New debug switches
 
 `?on` (skip the lever), `?pause`, `?card=cto`, `?hover=devops`, `?say=hello&who=pm`. Key `m` toggles sound, and Enter or Space pulls the power lever.
+
+## Phase 2: the guided tour
+
+**Date:** 2026-10-09
+
+### What Robert asked for after Phase 1
+
+- "It's very cluttered now with all the robots." Spread it out, and introduce robots a few at a time rather than all at once.
+- Turn the entrance scanner into a **WHY gate**: ideas are checked for who uses it, will they pay, ROI, security and governance. A laser destroys ideas without a clear value proposition.
+- Move security further along the line, before QA.
+
+### Decisions
+
+- **A long line and a camera.** The world grew to 400 x 54 cells, with stations in story order: WHY, PLAN, DESIGN, BUILD, SECURE, TEST, SHIP. The screen still shows 180 columns. The canvas holds the whole world and the camera moves it with a CSS transform, so pans and zooms are smooth and sub-cell while the art stays on the grid. The overview zooms out to show the whole factory at once.
+- **Lights follow the product.** Every zone stays dark until the idea arrives, then flickers on and its robots wake. That answers "introduce some but not all at once" without hiding anyone for good.
+- **The lever panel became a HUD.** It is drawn with the same grid and renderer, on its own small canvas pinned to the top-left corner, so mute stays in reach wherever the camera is.
+- **Scenes are small async scripts on the simulation clock.** For example: `await carry(hero, 'plan'); say('cto', 'build, not buy.'); await wait(1.8); stamp(hero)`. Waits resolve from the simulation, so pause works and a jump cancels everything pending. Jumping to any scene first settles the factory into the state the earlier scenes would have left it in: zones lit, the idea parked at the previous station at the right stage.
+- **Two belt modes.** During the tour the belt only moves when a script asks it to carry the idea to a station, then stops there for the moment. In explore mode it runs freely, new ideas keep arriving, about a quarter of them are lasered at the WHY gate, a fifth hit a bug at QA, and intruders try their luck every 40 to 65 seconds.
+- **Same station code for both.** Each station exposes actions (check, zap, stamp, project, weld, attack, raise dome, scan, fix, launch). The tour calls them on cue. Explore mode triggers them as packages pass.
+- **The shield dome is braille.** An ellipse plotted as hundreds of sub-cell dots gives a smooth curve that's still pure text. Intruders burst into sparks when they touch it.
+- **Navigation:** a scene strip of real buttons, URL hashes (`#build`, `#agent-qa`), arrow keys, Space and the mouse wheel during the tour, Escape to skip. In explore mode: drag or wheel to pan, arrows to hop between stations. `window.deck` mirrors the inspiration's debug navigator.
+
+### What went wrong, and the fixes
+
+1. **The good idea never left the intake in screenshots.** Live it worked. The fast-forward used for screenshots ran the simulation in a tight loop, and tour scripts continue in promise callbacks that never got a turn. Fix: the fast-forward yields a few microtask turns after every step.
+2. **The fixed lever panel covered the catwalk** once the camera panned. Fix: a compact 13 x 9 panel tucked under the roof in the top-left corner.
+3. **Speech bubbles covered neighbouring robots.** Fix: a bubble goes on whichever side of the head is clear of other robots.
+4. **"PLANN"** on the plan press, from overlapping text. **"SËCURË"**, because the roof vents sat on top of the zone label. Both moved.
+5. **The zone divider cut through the name sign**, and "PLAN" sat right after "ROBERT GRAY" so it read as one phrase. The divider is skipped there and the PLAN label moved right.
+
+### Timing
+
+The whole tour runs from lever to explore mode in about 90 seconds: boot 0s, overview 6.6s, why 14.5s, plan 30s, design 40.4s, build 47.6s, secure 58.2s, test 70.8s, ship 80.3s, explore 90s.

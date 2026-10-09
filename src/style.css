@@ -23,13 +23,30 @@ body {
 #stage {
   position: fixed;
   inset: 0;
-  display: grid;
-  place-items: center;
+  overflow: hidden;
+  touch-action: none;
 }
 
-.layer {
-  grid-area: 1 / 1;
+/* The world canvas is wider than the screen. The camera moves it with a transform. */
+.world,
+.hud {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.world > .layer,
+.hud > .layer {
+  position: absolute;
+  left: 0;
+  top: 0;
   display: block;
+}
+.hud {
+  z-index: 1;
+  background: var(--bg);
+  will-change: auto;
 }
 
 /* Two glow passes: a tight halo and a wide bloom. */
@@ -164,7 +181,80 @@ body {
   outline: 1px solid #1f9e45;
 }
 
-#hud {
+/* Tour: a typed caption and a strip of scene buttons along the bottom. */
+.tour {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 14px;
+  pointer-events: none;
+}
+.tour[hidden] {
+  display: none;
+}
+.caption {
+  min-height: 1.5em;
+  max-width: min(760px, 100%);
+  padding: 6px 14px;
+  white-space: pre-wrap;
+  text-align: center;
+  font-size: clamp(13px, 1.25vw, 18px);
+  line-height: 1.5;
+  color: #ffb000;
+  background: rgba(11, 15, 26, 0.82);
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.45);
+}
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: auto;
+}
+.strip button {
+  font: 12px/1 'JetBrains Mono', ui-monospace, monospace;
+  padding: 6px 9px;
+  color: #4f6660;
+  background: rgba(11, 15, 26, 0.85);
+  border: 1px solid #25342f;
+  cursor: pointer;
+}
+.strip button.done {
+  color: #1f9e45;
+  border-color: #0f5a2a;
+}
+.strip button.active {
+  color: #33ff66;
+  border-color: #33ff66;
+  text-shadow: 0 0 8px rgba(51, 255, 102, 0.6);
+}
+.strip button:hover,
+.strip button:focus-visible {
+  color: #eafff0;
+  border-color: #8fa39b;
+  outline: none;
+}
+.strip .skip {
+  margin-left: 12px;
+  color: #8a5f00;
+  border-color: #8a5f00;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+#stats {
   position: fixed;
   left: 8px;
   bottom: 6px;

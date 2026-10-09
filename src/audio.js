@@ -26,6 +26,14 @@ export function createAudio() {
     hum();
     weldLoop();
     sweep(55, 220, 1.6, 0.05);
+
+    // Started without a click (a deep link): the browser keeps it silent until the
+    // visitor first interacts, then it carries on.
+    if (ctx.state === 'suspended') {
+      const resume = () => ctx.resume();
+      window.addEventListener('pointerdown', resume, { once: true });
+      window.addEventListener('keydown', resume, { once: true });
+    }
   }
 
   // A low machine hum: two detuned saws through a lowpass that slowly breathes.
@@ -80,6 +88,21 @@ export function createAudio() {
     o.stop(t + dur);
   }
 
+  function burstNoise(dur, freq, vol) {
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = freq;
+    const gn = ctx.createGain();
+    const t = ctx.currentTime;
+    gn.gain.setValueAtTime(vol, t);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(bp).connect(gn).connect(master);
+    src.start(t, Math.random());
+    src.stop(t + dur);
+  }
+
   function tone(freq, dur, vol, type = 'sine', at = 0) {
     const o = ctx.createOscillator();
     const gn = ctx.createGain();
@@ -131,6 +154,52 @@ export function createAudio() {
       if (!ctx) return;
       tone(660, 0.18, 0.05);
       tone(990, 0.3, 0.05, 'sine', 0.12);
+    },
+
+    // One question on the WHY board: a high tick for yes, a low one for no.
+    tick(pass) {
+      if (!ctx) return;
+      tone(pass ? 1320 : 220, 0.06, 0.04, pass ? 'sine' : 'square');
+    },
+    approve() {
+      if (!ctx) return;
+      tone(523, 0.12, 0.05);
+      tone(784, 0.25, 0.05, 'sine', 0.1);
+    },
+    zap() {
+      if (!ctx) return;
+      sweep(1800, 90, 0.35, 0.09);
+      burstNoise(0.25, 2500, 0.2);
+    },
+    thunk() {
+      if (!ctx) return;
+      sweep(110, 40, 0.18, 0.3);
+    },
+    chime() {
+      if (!ctx) return;
+      tone(880, 0.2, 0.03);
+      tone(1175, 0.3, 0.03, 'sine', 0.08);
+    },
+    alarm() {
+      if (!ctx) return;
+      for (let i = 0; i < 3; i++) tone(i % 2 ? 440 : 660, 0.16, 0.035, 'square', i * 0.18);
+    },
+    shield() {
+      if (!ctx) return;
+      sweep(200, 900, 0.6, 0.05);
+    },
+    fizz() {
+      if (!ctx) return;
+      burstNoise(0.12, 4000, 0.08);
+    },
+    buzz() {
+      if (!ctx) return;
+      tone(150, 0.25, 0.05, 'sawtooth');
+    },
+    launch() {
+      if (!ctx) return;
+      sweep(80, 600, 1.1, 0.07);
+      burstNoise(0.9, 900, 0.12);
     },
 
     // Welding crackle, level 0 to 1, updated every frame.

@@ -4,71 +4,69 @@
 import { C } from './grid.js';
 import { makeRobot, W } from './robots.js';
 import content from './content.json';
+import { CREW_FLOOR, CATWALK, OFFICE, WORLD_COLS } from './layout.js';
 
 const TITLES = Object.fromEntries(content.agents.map((a) => [a.id, a.title]));
 
-export const CREW_FLOOR = 49; // feet row under the line
-export const CATWALK = 22; // feet row on the catwalk
-export const OFFICE = 25; // feet row in the upper offices
-
-// wake: seconds after power on. min/max: patrol range (left x). arm: pose while working.
+// zone: which part of the line wakes it. wake: extra delay after its zone lights up.
+// min/max: patrol range (left x). arm: pose while working.
 const ROLES = [
   {
-    id: 'ceo', feet: OFFICE, min: 16, max: 18, speed: 4, wake: 0.9, arm: 'down',
+    id: 'ceo', zone: 'why', wake: 0.3, feet: OFFICE, min: 17, max: 19, speed: 4, arm: 'down',
     robot: { label: 'CEO', antenna: 'dish', head: 'dome', body: 'tall', tool: 'clipboard', accent: C.amber },
     quips: ['love the energy.', 'vision: delivered.', 'numbers look good.'],
   },
   {
-    id: 'cto', feet: OFFICE, min: 135, max: 137, speed: 4, wake: 1.5, arm: 'down',
+    id: 'cto', zone: 'plan', wake: 0.2, feet: OFFICE, min: 76, max: 78, speed: 4, arm: 'down',
     robot: { label: 'CTO', antenna: 'tip', head: 'monitor', accent: C.green },
     quips: ['all green.', 'hmm. one odd log line.', 'keep it simple.', 'checking. again.'],
   },
   {
-    id: 'pm', feet: CATWALK, min: 49, max: 66, speed: 7, wake: 1.2, arm: 'up', walkArm: 'up',
+    id: 'pm', zone: 'plan', wake: 0.5, bubble: 'left', feet: CATWALK, min: 108, max: 124, speed: 7, arm: 'up', walkArm: 'up',
     robot: { label: 'PM', antenna: 'twin', head: 'square', tool: 'kanban', accent: C.amber },
     quips: ['blocker cleared.', 'on track.', 'milestone!'],
   },
   {
-    id: 'design', feet: CATWALK, min: 78, max: 96, speed: 5, wake: 1.35, arm: 'up', sketches: true,
+    id: 'design', zone: 'design', wake: 0.3, bubble: 'left', feet: CATWALK, min: 142, max: 158, speed: 5, arm: 'up', sketches: true,
     robot: { label: 'UX', antenna: 'none', head: 'beret', body: 'slim', tool: 'stylus', accent: C.cyan },
     quips: ['one char to the left.', 'more whitespace.', 'better.'],
   },
   {
-    id: 'backend', feet: CREW_FLOOR, min: 33, max: 36, speed: 4, wake: 2.3, arm: 'reach',
+    id: 'backend', zone: 'build', wake: 0.3, feet: CREW_FLOOR, min: 193, max: 196, speed: 4, arm: 'reach',
     robot: { label: 'API', antenna: 'tip', head: 'goggles', body: 'wide', accent: C.green },
     quips: ['schema migrated.', 'query is fast now.', 'pipes are flowing.'],
   },
   {
-    id: 'frontend', feet: CREW_FLOOR, min: 58, max: 60, speed: 4, wake: 2.45, arm: 'reach',
+    id: 'frontend', zone: 'build', wake: 0.5, feet: CREW_FLOOR, min: 220, max: 222, speed: 4, arm: 'reach',
     robot: { label: 'UI', antenna: 'twin', head: 'round', tool: 'palette', accent: C.cyan },
     quips: ['pixel perfect.', 'dark mode, obviously.', 'snaps right in.'],
   },
   {
-    id: 'fullstack', feet: CREW_FLOOR, min: 40, max: 96, stops: [47, 75], speed: 16, wake: 2.6, arm: 'down', front: true,
+    id: 'fullstack', zone: 'build', wake: 0.7, feet: CREW_FLOOR, min: 205, max: 240, stops: [207, 237], speed: 16, arm: 'down', front: true,
     robot: { label: 'FULL', antenna: 'tip', head: 'split', legs: 'wheel', tool: 'bridge', accent: C.white },
     quips: ['on my way!', 'both ends covered.', 'need a hand?'],
   },
   {
-    id: 'qa', feet: CREW_FLOOR, min: 89, max: 92, speed: 4, wake: 2.75, arm: 'reach',
+    id: 'security', zone: 'secure', wake: 0.3, feet: CREW_FLOOR, min: 280, max: 285, speed: 4, arm: 'down',
+    robot: { label: 'SEC', antenna: 'none', head: 'visor', body: 'heavy', tool: 'shield', accent: C.red },
+    quips: ['access denied.', 'nice try.', 'perimeter secure.'],
+  },
+  {
+    id: 'qa', zone: 'test', wake: 0.3, feet: CREW_FLOOR, min: 318, max: 321, speed: 4, arm: 'reach',
     robot: { label: 'QA', antenna: 'none', head: 'mono', tool: 'magnifier', accent: C.green, eye: '◎' },
     quips: ['found one.', 'not ignoring that.', 'passes. for now.'],
   },
   {
-    id: 'devops', feet: CREW_FLOOR, min: 116, max: 134, speed: 6, wake: 2.9, arm: 'reach', cable: true,
+    id: 'devops', zone: 'ship', wake: 0.3, feet: CREW_FLOOR, min: 359, max: 362, speed: 6, arm: 'reach', cable: true,
     robot: { label: 'OPS', antenna: 'none', head: 'hardhat', body: 'stocky', legs: 'treads', tool: 'plug', accent: C.amber },
     quips: ['deploying.', 'it is 2am somewhere.', 'rack is happy.'],
   },
-  {
-    id: 'security', feet: CREW_FLOOR, min: 15, max: 19, speed: 4, wake: 2.15, arm: 'down',
-    robot: { label: 'SEC', antenna: 'none', head: 'visor', body: 'heavy', tool: 'shield', accent: C.red },
-    quips: ['access denied.', 'nice try.', 'perimeter secure.'],
-  },
 ];
 
-const DB_X = 49;
-const UI_X = 77;
-const BIN_X = 106;
-const RACK_X = 150;
+const DB_X = 209;
+const UI_X = 238;
+export const BIN_X = 334; // drawn by the TEST station
+const RACK_X = 375;
 
 export function createCrew(rnd, audio) {
   const agents = ROLES.map((r) => ({
@@ -81,10 +79,12 @@ export function createCrew(rnd, audio) {
   const sketches = [];
   let speaker = null; // only one robot talks at a time
   let nextTalk = 4;
+  let chatter = false; // random small talk, explore mode only
 
-  function update(t, awakeAt) {
+  function update(t, isAwake) {
+    const awake = (a) => isAwake(a.zone, a.wake);
     for (const a of agents) {
-      if (!awakeAt(a.wake)) continue;
+      if (!awake(a)) continue;
       if (a.state === 'walk') {
         const p = Math.min(1, (t - a.t0) / a.dur);
         a.x = a.from + (a.to - a.from) * easeInOutSine(p);
@@ -110,8 +110,8 @@ export function createCrew(rnd, audio) {
 
     // Someone idle says something every few seconds.
     if (speaker && t > speaker.end) speaker = null;
-    if (!speaker && t > nextTalk) {
-      const idle = agents.filter((a) => a.state === 'work' && awakeAt(a.wake));
+    if (!speaker && chatter && t > nextTalk) {
+      const idle = agents.filter((a) => a.state === 'work' && awake(a));
       if (idle.length) {
         const a = idle[Math.floor(rnd() * idle.length)];
         const text = a.quips[Math.floor(rnd() * a.quips.length)];
@@ -130,23 +130,24 @@ export function createCrew(rnd, audio) {
   }
 
   // layer: 'upper' (offices and catwalk) or 'floor' (under the line)
-  function draw(g, t, layer, { awakeAt, hover, hits }) {
+  function draw(g, t, layer, { isAwake, hover, hits }) {
+    const awake = (a) => isAwake(a.zone, a.wake);
     const upper = layer === 'upper';
-    if (!upper) drawProps(g, t, awakeAt);
+    if (!upper) drawProps(g, t, isAwake);
     const list = agents.filter((a) => (a.feet === CREW_FLOOR) !== upper);
     // Robots that roam in front are drawn last.
     list.sort((a, b) => (a.front ? 1 : 0) - (b.front ? 1 : 0));
     for (const a of list) {
-      const awake = awakeAt(a.wake);
+      const lit = awake(a);
       const walking = a.state === 'walk';
       const phase = walking ? Math.floor(Math.abs(a.x - a.from) / 1.6) % 4 : 0;
       const talking = speaker?.agent === a && t > speaker.start;
       const x = Math.round(a.x);
-      const work = !walking && awake;
+      const work = !walking && lit;
       // Asleep robots are drawn entirely in the unlit colour.
-      g.tinted(awake ? 0 : C.greyDark, () => (a.box = a.draw(g, x, a.feet, {
+      g.tinted(lit ? 0 : C.greyDark, () => (a.box = a.draw(g, x, a.feet, {
         t,
-        asleep: !awake,
+        asleep: !lit,
         walk: ['stand', 'stepA', 'stand', 'stepB'][phase],
         swing: walking ? [0, 1, 0, -1][phase] : 0,
         look: walking ? a.dir : 0,
@@ -160,24 +161,24 @@ export function createCrew(rnd, audio) {
         roll: a.x * 1.5,
         highlight: hover === a.id,
       })));
-      hits.push({ id: a.id, ...a.box });
+      if (lit) hits.push({ id: a.id, ...a.box });
       if (hover === a.id) {
         const tag = `▾ ${TITLES[a.id] ?? a.robot.label}`;
         g.text(x + Math.floor((W - tag.length) / 2), a.box.y - 1, tag, C.white);
       }
-      if (a.cable && awake) drawCable(g, a.box.rh, t);
+      if (a.cable && lit) drawCable(g, a.box.rh, t);
     }
     if (upper) {
       for (const s of sketches) drawSketch(g, s, t);
     }
     if (speaker && t > speaker.start && (speaker.agent.feet === CREW_FLOOR) !== upper) {
-      drawBubble(g, speaker.agent.box, speaker.text, Math.floor((t - speaker.start) * 28));
+      drawBubble(g, speaker.agent, speaker.text, Math.floor((t - speaker.start) * 28), list);
     }
   }
 
-  function drawProps(g, t, awakeAt) {
+  function drawProps(g, t, isAwake) {
     // Database drum next to the backend robot, with a data pipe up to the line.
-    g.tinted(awakeAt(2.3) ? 0 : C.greyDark, () => {
+    g.tinted(isAwake('build', 0.3) ? 0 : C.greyDark, () => {
       const y = 43;
       g.text(DB_X, y, '╭───────╮', C.steel);
       g.text(DB_X, y + 1, '├───────┤', C.steel);
@@ -196,7 +197,7 @@ export function createCrew(rnd, audio) {
     });
 
     // A UI component the frontend robot keeps restyling.
-    g.tinted(awakeAt(2.45) ? 0 : C.greyDark, () => {
+    g.tinted(isAwake('build', 0.5) ? 0 : C.greyDark, () => {
       const y = 44;
       const tone = [C.cyan, C.green, C.amber][Math.floor(t / 2.5) % 3];
       g.text(UI_X, y, '┌──────┐', C.cyanDim);
@@ -210,21 +211,8 @@ export function createCrew(rnd, audio) {
       g.text(UI_X, y + 5, '└──────┘', C.cyanDim);
     });
 
-    // The bug bin. Rejected bugs crawl around inside it.
-    g.tinted(awakeAt(2.75) ? 0 : C.greyDark, () => {
-      const y = 46;
-      g.text(BIN_X, y, '┌─BUGS─┐', C.grey);
-      g.text(BIN_X, y + 1, '│``````│', C.grey);
-      g.text(BIN_X, y + 2, '│``````│', C.grey);
-      g.text(BIN_X, y + 3, '└──────┘', C.grey);
-      for (let i = 0; i < 3; i++) {
-        const k = Math.floor(t * 1.3 + i * 2.1);
-        g.put(BIN_X + 1 + ((k * 3 + i * 2) % 6), y + 1 + ((k + i) % 2), '¤', C.red);
-      }
-    });
-
     // Server rack with blinking lights.
-    g.tinted(awakeAt(2.9) ? 0 : C.greyDark, () => {
+    g.tinted(isAwake('ship', 0.3) ? 0 : C.greyDark, () => {
       const y = 40;
       g.text(RACK_X, y, '╔═════════╗', C.grey);
       for (let j = 1; j < 9; j++) {
@@ -267,18 +255,29 @@ export function createCrew(rnd, audio) {
     agents,
     update,
     draw,
-    say(id, text, t) {
+    set chatter(v) { chatter = v; },
+    // Make one robot say a line now. It stops moving while it talks.
+    say(id, text, t, hold = 1.2 + text.length * 0.06 + 1.4) {
       const a = agents.find((x) => x.id === id);
-      if (a) speaker = { agent: a, text, start: t, end: t + 1e9, typed: 0 };
+      if (!a) return;
+      speaker = { agent: a, text, start: t, end: t + hold, typed: 0 };
+      a.until = Math.max(a.until, t + hold);
     },
+    hush() { speaker = null; },
   };
 }
 
-function drawBubble(g, box, text, n) {
+// Speech goes beside the head, on whichever side is clear of other robots.
+function drawBubble(g, agent, text, n, others) {
+  const box = agent.box;
   const shown = text.slice(0, Math.max(0, n));
   const w = text.length + 4;
-  const left = box.x + W + w > 178;
-  const x = left ? box.x - w - 1 : box.x + W;
+  const right = box.x + W;
+  const leftX = box.x - w - 1;
+  const blocked = (x0) => x0 < 0 || x0 + w > WORLD_COLS - 2 ||
+    others.some((o) => o !== agent && o.box && o.box.x < x0 + w && o.box.x + W > x0);
+  const left = agent.bubble === 'left' ? !blocked(leftX) || blocked(right) : blocked(right) && !blocked(leftX);
+  const x = left ? leftX : right;
   const y = Math.max(0, box.y + 1);
   g.text(x, y, '╭' + '─'.repeat(w - 2) + '╮', C.steel);
   g.text(x, y + 1, '│`' + '`'.repeat(text.length) + '`│', C.steel);

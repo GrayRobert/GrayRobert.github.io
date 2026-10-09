@@ -1,0 +1,87 @@
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: block;
+}
+
+:root {
+  --bg: #0b0f1a;
+  --ink: #33ff66;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  overflow: hidden;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.layer {
+  grid-area: 1 / 1;
+  display: block;
+}
+
+/* Two glow passes: a tight halo and a wide bloom. */
+.glow {
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.glow.near {
+  filter: blur(calc(var(--cell-css, 10px) * 0.35)) saturate(1.3);
+  opacity: 0.75;
+}
+.glow.far {
+  filter: blur(calc(var(--cell-css, 10px) * 1.6)) saturate(1.4);
+  opacity: 0.55;
+}
+
+/* CRT: scanlines, vignette and a gentle flicker. Off with the C key. */
+.crt::before,
+.crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.crt::before {
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 2px, rgba(0, 0, 0, 0.22) 3px);
+}
+/* The flicker darkens an overlay, never the canvas itself. Animating the canvas's
+   own opacity made Chrome drop regions that were not repainted that frame. */
+.crt::after {
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.55) 100%);
+  animation: flicker 6s infinite steps(1);
+}
+@keyframes flicker {
+  0%, 100% { background-color: rgba(0, 0, 0, 0); }
+  41% { background-color: rgba(0, 0, 0, 0.05); }
+  42% { background-color: rgba(0, 0, 0, 0); }
+  77% { background-color: rgba(0, 0, 0, 0.03); }
+  78% { background-color: rgba(0, 0, 0, 0); }
+}
+
+#hud {
+  position: fixed;
+  left: 8px;
+  bottom: 6px;
+  font-size: 12px;
+  color: #8fa39b;
+  z-index: 3;
+  white-space: pre;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt::after { animation: none; }
+}

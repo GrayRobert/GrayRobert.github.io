@@ -1,9 +1,9 @@
 // The ten robots: who they are, where they work, how they idle, and their station props.
-// CV text lives in content.json. This file only knows names, places and behaviour.
+// CV text lives in content/ (Markdown). This file only knows names, places and behaviour.
 
 import { C } from './grid.js';
 import { makeRobot, W } from './robots.js';
-import content from './content.json';
+import content from 'virtual:content';
 import { CREW_FLOOR, CATWALK, OFFICE, WORLD_COLS } from './layout.js';
 
 const TITLES = Object.fromEntries(content.agents.map((a) => [a.id, a.title]));

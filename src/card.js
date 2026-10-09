@@ -1,7 +1,7 @@
 // Skill cards. Real HTML in a native <dialog>, so the text is selectable, readable by
-// screen readers, and closes with Escape. Content comes only from content.json.
+// screen readers, and closes with Escape. Content comes only from the Markdown in content/.
 
-import content from './content.json';
+import content from 'virtual:content';
 
 const TODO = 'TODO_ROBERT';
 

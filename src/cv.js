@@ -1,4 +1,4 @@
-// The CV as plain semantic HTML, built from content.json. It is injected into index.html
+// The CV as plain semantic HTML, built from the Markdown in content/. It is injected into index.html
 // at build time (see vite.config.js), so search engines and screen readers get real
 // text, and the "plain text CV" mode shows it. Unwritten items are simply left out.
 

@@ -165,3 +165,20 @@ The whole tour runs from lever to explore mode in about 90 seconds: boot 0s, ove
 ### Measurements
 
 Real browser, 1512 x 945 at 2x, canvas 7520 x 1620: 120 fps, 0.5 ms of work per frame, 1.1 ms worst.
+
+## Phase 5: shipping it
+
+**Date:** 2026-10-09
+
+### Decisions
+
+- **One file.** `vite-plugin-singlefile` inlines the code, styles, CV text and the font into a single `index.html`: 225 KB, or 135 KB gzipped. `scripts/check-dist.mjs` opens the built file straight from disk and fails on any error or outside request.
+- **Social preview.** `scripts/og-image.mjs` captures `public/og.png` from the factory itself (the WHY gate approving an idea, with the name sign above). The share tags are in place, and the image link becomes a full URL once the site address is final.
+- **The levers moved back into the factory.** Robert: "the power and sound buttons are floating and scrolling with the content. I think they should be fixed at the start of the tour." They are now part of the world at the start of the line. A "sound: on/off" button in the page corner (and the M key) mutes from anywhere. The opening shot always starts at the left edge so the levers are in view at every screen width. (Before this fix, a medium-width window cut them off the left side.)
+- **All the words are Markdown.** Robert liked the idea of managing the cards as Markdown files. `content/profile.md`, one file per robot in `content/roles/`, and `content/making.md`. A small loader turns them into exactly the data the site already used, so nothing else changed. A round-trip check confirmed the Markdown reproduces the old JSON byte for byte. In dev, saving any file in `content/` reloads the page. `content/README.md` explains the format and the house style.
+- **Deploys from GitHub Actions.** `.github/workflows/pages.yml` builds on every push to `main` and publishes `dist/` to GitHub Pages.
+
+### What went wrong, and the fixes
+
+1. **Edits to content files didn't reload the dev page at first.** Vite only reports changes to files in its module graph, and Markdown read by the loader isn't in it. Fix: the plugin watches `content/` itself, invalidates the virtual module and sends a full reload. Tested by editing the CTO pitch, watching the open page reload by itself, then reverting.
+2. **The machine's GitHub key turned out to be a deploy key** for a different repo under a different account name. It can't create or push a new repo, so publishing waits on Robert logging in.

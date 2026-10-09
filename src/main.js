@@ -8,7 +8,7 @@ import { createLeverPanel } from './hud.js';
 import { createTour, SCENES } from './tour.js';
 import { createTourUI } from './tourui.js';
 import { WORLD_COLS, ROWS, view, updateViewCols, viewFor, ZONES } from './layout.js';
-import content from './content.json';
+import content from 'virtual:content';
 
 const stage = document.getElementById('stage');
 const stats = document.getElementById('stats');

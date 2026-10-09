@@ -136,3 +136,32 @@ The whole tour runs from lever to explore mode in about 90 seconds: boot 0s, ove
 3. **On a phone, the opening shot cut the name sign in half** and the lever callout ran off screen. The opening view zooms to fit the sign, and the callout wraps onto shorter lines.
 4. **Speech bubbles still covered neighbours in the crowded build zone.** When both sides are taken, the bubble goes above the head.
 5. **Two places where the CV disagreed with the original brief:** the engineer to TPM to CTO progression was at Topflight Travel Group (not Directski.com), and the BSc ran 2017 to 2019. The CV wins. The "BSc in one year" claim is left out until Robert confirms it.
+
+## Phase 4: the NOC, the 2am alert, and how this was made
+
+**Date:** 2026-10-09
+
+### What Robert asked for
+
+- Answers to the open questions. The BSc took two years, as the CV says. Topflight merged with Directski to become Topflight Travel Group, and he never left either, so the experience section shows one continuous role with a single line about the merger. He wasn't sure whether to split them, so this is easy to change.
+- "I like the idea that it shows what I do to keep systems running, perhaps it would be part of the tour where we have a NOC (network operations centre) with screens and lots of monitoring going on, and like that perhaps it's a robot sleeping on a bed being woken up by alerts at 2am and responding immediately."
+
+### Decisions
+
+- **The NOC is the last stop on the line,** after SHIP: shipping is not the end. The world grew to 470 columns. The room has a big clock, a status panel, three live graphs (cpu, heap, traffic), a server rack, a console desk and a bed.
+- **The OPS robot lives there, on a clock.** In explore mode the factory clock runs ten minutes per second, so a day takes about 2.4 minutes. The robot works the console by day, goes to bed at 23:00, and a memory leak builds overnight. You can watch the heap graph creep from green to amber to red. At 02:00 the alarm goes, the room turns red, the robot springs out of bed ("on it."), rushes to the console, takes a heap dump, redeploys, waits for health checks, and goes back to bed ("back to bed."). At 07:00 it gets up for work.
+- **The NOC directs the robot.** The robot became a "puppet" the NOC moves around, rather than a patroller. When it's in bed, the NOC draws a hard hat on a pillow and a breathing blanket, and clicking the bed still opens its skill card.
+- **The graphs are braille line charts:** two dots across and four down per cell, so they curve smoothly.
+- **The tour got a "2am" scene** after SHIP. It sets the clock to a few minutes before 2am and lets the NOC's own logic play out, with captions following its phases. The tour now runs about 105 seconds in total.
+- **"How this was made" is a curated page,** not the raw log. `src/making.md` is written for visitors and rendered into the page at build time by a tiny Markdown converter. The raw PROCESS.md has internal back-and-forth that isn't meant for an audience.
+
+### What went wrong, and the fixes
+
+1. **The graphs didn't draw at all at first.** Braille dots only go into empty cells, and the room filled its interior with opaque blanks to hide the wall behind it. Fix: `grid.erase()` clears the room to truly empty cells.
+2. **A page error repeated in explore mode** (the PM's kanban animation indexed outside its table). Fix: the index is clamped to 0 to 5. Explore ran clean for 50 seconds through a full incident afterwards.
+3. **The "on it" bubble covered the console** the robot was rushing to. The OPS robot now always speaks above its head.
+4. **The making-of quoted Robert loosely** inside quote marks. The quotes are now his actual words.
+
+### Measurements
+
+Real browser, 1512 x 945 at 2x, canvas 7520 x 1620: 120 fps, 0.5 ms of work per frame, 1.1 ms worst.

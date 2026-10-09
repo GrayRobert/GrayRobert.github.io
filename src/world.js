@@ -9,6 +9,7 @@ import { C } from './grid.js';
 import { bigText, bigTextWidth } from './bigtext.js';
 import { createCrew, hash } from './crew.js';
 import { createStations } from './stations.js';
+import { createNoc } from './noc.js';
 import {
   WORLD_COLS, FLOOR_Y, BELT_Y, BELT_X0, BELT_X1, PKG_W, ZONES, STATION, zoneAt, isNarrow,
 } from './layout.js';
@@ -28,7 +29,7 @@ const TOUR_SPEED = 18;
 
 const ZONE_SIGNS = [
   ['plan', 'PLAN', 112], ['design', 'DESIGN', 148], ['build', 'BUILD', 216],
-  ['secure', 'SECURE', 275], ['test', 'TEST', 325], ['ship', 'SHIP', 366],
+  ['secure', 'SECURE', 275], ['test', 'TEST', 325], ['ship', 'SHIP', 366], ['noc', 'NOC', 426],
 ];
 
 const LOG_LINES = [
@@ -128,6 +129,9 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     deploy: () => { deployed++; },
     deployed: () => deployed,
   });
+  const noc = createNoc({ rnd, audio }, crew);
+  noc.reset();
+  stations.noc = noc;
 
   function update(t, dt) {
     now = t;
@@ -165,6 +169,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     s.secure.update(t, dt);
     s.test.update(t, dt);
     s.ship.update(t, dt);
+    noc.update(t, dt);
 
     for (const p of particles) {
       p.age += dt;
@@ -261,6 +266,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     zone('plan', () => drawTower(g));
     zone('build', () => drawPipes(g));
     zone('ship', () => s.ship.draw(g, t));
+    zone('noc', () => noc.draw(g, t));
     for (const m of steam) {
       const k = m.age / m.life;
       g.put(m.x, m.y, k < 0.12 ? '▓' : k < 0.35 ? '▒' : k < 0.75 ? '░' : '·', k < 0.4 ? C.grey : C.greyDark);
@@ -282,6 +288,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     s.secure.drawFx(g, t);
     s.test.drawFx(g, t);
     s.ship.drawFx(g, t);
+    noc.drawFx(g, t, hits, isAwake('noc'));
     if (!power.on) drawPowerHint(g, t);
   }
 
@@ -444,7 +451,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
   function drawFloor(g, t) {
     g.text(0, FLOOR_Y, '▀'.repeat(WORLD_COLS), C.greyDark);
     for (let x = 0; x < WORLD_COLS; x++) {
-      const hazard = x < 16 || x > WORLD_COLS - 16;
+      const hazard = x < 16 || (x > 372 && x < 400); // the two ends of the line
       g.put(x, FLOOR_Y + 1, hazard ? (x % 2 ? '▞' : '▚') : '·', hazard && power.on ? C.amberDim : C.greyDark);
     }
     g.text(0, FLOOR_Y + 2, '─'.repeat(WORLD_COLS), C.greyDark);
@@ -508,6 +515,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
       belt.target = null;
       crew.chatter = false;
       crew.hush();
+      noc.setRate(false);
       audio?.weld(0);
       audio?.sleep();
     },
@@ -518,6 +526,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     setMode(m) {
       mode = m;
       crew.chatter = m === 'free';
+      noc.setRate(m === 'free');
       if (m === 'free') {
         belt.target = null;
         nextSpawn = belt.step + 4;
@@ -536,6 +545,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
       stations.secure.raiseDome(false);
       stations.why.run = null;
       stations.why.verdict = null;
+      noc.reset();
     },
 
     spawn,

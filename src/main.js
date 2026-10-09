@@ -13,6 +13,7 @@ import content from './content.json';
 const stage = document.getElementById('stage');
 const stats = document.getElementById('stats');
 const plainToggle = document.getElementById('plain-toggle');
+const makingToggle = document.getElementById('making-toggle');
 const crewNav = document.getElementById('crew-nav');
 const params = new URLSearchParams(location.search);
 const EXPLORE = SCENES.length - 1;
@@ -83,33 +84,49 @@ function toggleSound() {
   audio.clunk();
 }
 
-// Plain text CV: the same content as real HTML, without the factory.
-function setPlain(on) {
-  plain = on;
-  document.body.classList.toggle('plain', on);
-  document.documentElement.classList.toggle('plain', on);
-  plainToggle.setAttribute('aria-pressed', String(on));
-  plainToggle.textContent = on ? '◀ back to the factory' : '≡ plain CV';
-  if (on) audio.sleep();
-  else {
+// Text pages: the plain CV and "how this was made", as real HTML, without the factory.
+// page is 'factory', 'cv' or 'making'.
+const PAGES = {
+  cv: { button: plainToggle, label: '≡ plain CV' },
+  making: { button: makingToggle, label: '? how this was made' },
+};
+let page = 'factory';
+function setPage(next) {
+  page = next;
+  plain = next !== 'factory';
+  document.body.classList.toggle('plain', plain);
+  document.documentElement.classList.toggle('plain', plain);
+  document.body.classList.toggle('page-cv', next === 'cv');
+  document.body.classList.toggle('page-making', next === 'making');
+  for (const [id, { button, label }] of Object.entries(PAGES)) {
+    button.setAttribute('aria-pressed', String(id === next));
+    button.textContent = id === next ? '◀ back to the factory' : label;
+  }
+  if (plain) {
+    audio.sleep();
+    window.scrollTo(0, 0);
+    document.getElementById(next).focus();
+  } else {
     if (world.powered) audio.wake();
     window.dispatchEvent(new Event('resize')); // the window may have changed while hidden
   }
 }
-plainToggle.addEventListener('click', () => {
-  setPlain(!plain);
-  history.replaceState(null, '', plain ? '#cv' : location.pathname + location.search);
-  if (plain) document.getElementById('cv').focus();
-});
+const setPlain = (on) => setPage(on ? 'cv' : 'factory');
+for (const [id, { button }] of Object.entries(PAGES)) {
+  button.addEventListener('click', () => {
+    setPage(page === id ? 'factory' : id);
+    history.replaceState(null, '', plain ? '#' + id : location.pathname + location.search);
+  });
+}
 
-// Deep links: #cv, #build, #agent-qa. Factory links skip the lever. Sound starts on the first click.
+// Deep links: #cv, #making, #build, #agent-qa. Factory links skip the lever. Sound starts on the first click.
 function openFromHash() {
   const h = location.hash.slice(1);
-  if (h === 'cv') {
-    setPlain(true);
+  if (h in PAGES) {
+    setPage(h);
     return true;
   }
-  if (plain && h) setPlain(false);
+  if (plain && h) setPage('factory');
   if (h.startsWith('agent-')) {
     showRobot(h.slice(6));
     cards.open(h.slice(6));

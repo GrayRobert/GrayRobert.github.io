@@ -14,6 +14,7 @@ export const SCENES = [
   { id: 'secure', name: 'secure', zone: 'secure', stage: 'secure' },
   { id: 'test', name: 'test', zone: 'test', stage: 'tested' },
   { id: 'ship', name: 'ship', zone: 'ship' },
+  { id: 'noc', name: '2am', zone: 'noc' },
   { id: 'explore', name: 'explore' },
 ];
 const EXPLORE = SCENES.length - 1;
@@ -69,8 +70,8 @@ export function createTour({ world, camera, ui }) {
       hero = world.spawn();
       await until(() => world.arrived(bad, stop('why')));
       ui.caption('Who uses it? Will they pay? Is it worth it? Is it safe? Is it allowed?');
-      st.why.check(bad, false, now, 0.45);
-      await wait(st.why.duration(0.45) + 0.5);
+      st.why.check(bad, false, now, 0.38);
+      await wait(st.why.duration(0.38) + 0.4);
       ui.caption('No clear value? Laser.');
       st.why.zap(bad, now);
       await wait(0.8);
@@ -162,10 +163,23 @@ export function createTour({ world, camera, ui }) {
       await carry(hero, 'ship', STATION.ship - 8);
       st.ship.launch(hero, now);
       hero = null;
-      say('devops', 'deployed.');
-      await wait(2.8);
-      ui.caption('And it keeps shipping. Even at 2am.');
-      await wait(2.8);
+      await wait(2.6);
+      await wait(0.6);
+    },
+
+    async noc() {
+      world.light('noc');
+      view('noc');
+      st.noc.night(now);
+      ui.caption('Shipping is not the end. Something has to keep it running.');
+      await until(() => st.noc.phase === 'alert', 8);
+      ui.caption('2:00am. A memory leak. Heap at 98%.');
+      await until(() => st.noc.phase === 'fix', 8);
+      ui.caption('Up. Heap dump. Redeploy. Back to green.');
+      await until(() => st.noc.phase === 'back', 8);
+      ui.caption('Robert is first responder for what he builds. Root cause found by morning.');
+      await until(() => st.noc.phase === 'sleep', 6);
+      await wait(1.8);
     },
 
     async explore() {

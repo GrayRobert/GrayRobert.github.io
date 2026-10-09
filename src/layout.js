@@ -1,7 +1,7 @@
 // Where everything is. The world is a long line, the screen shows a 180 column window
 // onto it, and a camera glides along. Stations run left to right in story order.
 
-export const WORLD_COLS = 400;
+export const WORLD_COLS = 470;
 export const VIEW_COLS = 180;
 export const ROWS = 54;
 
@@ -24,12 +24,13 @@ export const ZONES = [
   { id: 'build', x0: 190, x1: 270 },
   { id: 'secure', x0: 270, x1: 315 },
   { id: 'test', x0: 315, x1: 358 },
-  { id: 'ship', x0: 358, x1: WORLD_COLS },
+  { id: 'ship', x0: 358, x1: 400 },
+  { id: 'noc', x0: 400, x1: WORLD_COLS }, // the network operations centre: keeping it running
 ];
 
 export function zoneAt(x) {
   for (const z of ZONES) if (x < z.x1) return z.id;
-  return 'ship';
+  return 'noc';
 }
 
 // Station centres along the belt.
@@ -52,7 +53,8 @@ export const VIEW = {
   build: 228,
   secure: 296,
   test: 320,
-  ship: 320,
+  ship: 330,
+  noc: 380,
 };
 
 // On narrow screens the camera shows fewer columns so text stays readable.
@@ -66,6 +68,7 @@ const NARROW = {
   secure: 296,
   test: 334,
   ship: 372,
+  noc: 436,
 };
 
 // How many columns fit across the screen right now. Updated on resize.

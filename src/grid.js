@@ -92,6 +92,11 @@ export function createGrid(cols = COLS, rows = ROWS) {
       for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) put(x + i, y + j, code, col);
     },
 
+    // Make cells empty again (transparent, and free for braille dots).
+    erase(x, y, w, h) {
+      for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) put(x + i, y + j, 0, 0);
+    },
+
     box(x, y, w, h, col, style = 'light') {
       const s = BOX_STYLES[style];
       this.put(x, y, s[0], col);

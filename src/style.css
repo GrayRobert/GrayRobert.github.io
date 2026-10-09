@@ -287,7 +287,8 @@ body.plain .tour,
 body.plain #crew-nav {
   display: none;
 }
-body.plain .cv {
+body.page-cv #cv,
+body.page-making #making {
   position: static;
   width: auto;
   height: auto;
@@ -353,11 +354,15 @@ body.plain .cv {
 .skip-link:focus {
   top: 8px;
 }
-#plain-toggle {
+#page-links {
   position: fixed;
   top: 10px;
   right: 12px;
   z-index: 6;
+  display: flex;
+  gap: 6px;
+}
+#page-links button {
   padding: 6px 10px;
   font: 12px/1 'JetBrains Mono', ui-monospace, monospace;
   color: #8fa39b;
@@ -365,8 +370,8 @@ body.plain .cv {
   border: 1px solid #25342f;
   cursor: pointer;
 }
-#plain-toggle:hover,
-#plain-toggle:focus-visible {
+#page-links button:hover,
+#page-links button:focus-visible {
   color: #eafff0;
   border-color: #8fa39b;
   outline: none;
@@ -412,4 +417,20 @@ html.plain,
 html.plain body {
   overflow: auto;
   height: auto;
+}
+
+.making strong {
+  color: #33ff66;
+}
+.making code {
+  color: #4de1ff;
+}
+.making h2::before {
+  content: '## ';
+}
+@media (max-width: 520px) {
+  #page-links button {
+    padding: 5px 7px;
+    font-size: 11px;
+  }
 }

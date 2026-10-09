@@ -57,7 +57,8 @@ const ROLES = [
     quips: ['found one.', 'not ignoring that.', 'passes. for now.'],
   },
   {
-    id: 'devops', zone: 'ship', wake: 0.3, feet: CREW_FLOOR, min: 359, max: 362, speed: 6, arm: 'reach', cable: true,
+    // Lives in the NOC. The NOC moves it (desk, bed, the 2am dash), so it never patrols.
+    id: 'devops', zone: 'noc', wake: 0, bubble: 'above', feet: CREW_FLOOR, min: 416, max: 416, speed: 6, arm: 'reach', puppet: true,
     robot: { label: 'OPS', antenna: 'none', head: 'hardhat', body: 'stocky', legs: 'treads', tool: 'plug', accent: C.amber },
     quips: ['deploying.', 'it is 2am somewhere.', 'rack is happy.'],
   },
@@ -66,7 +67,6 @@ const ROLES = [
 const DB_X = 209;
 const UI_X = 238;
 export const BIN_X = 334; // drawn by the TEST station
-const RACK_X = 375;
 
 export function createCrew(rnd, audio) {
   const agents = ROLES.map((r) => ({
@@ -90,9 +90,9 @@ export function createCrew(rnd, audio) {
         a.x = a.from + (a.to - a.from) * easeInOutSine(p);
         if (p >= 1) {
           a.state = 'work';
-          a.until = t + 1.5 + rnd() * 3.5;
+          a.until = a.puppet ? Infinity : t + 1.5 + rnd() * 3.5;
         }
-      } else if (t > a.until && a !== speaker?.agent) {
+      } else if (!a.puppet && t > a.until && a !== speaker?.agent) {
         let to = a.x;
         if (a.stops) to = a.stops.find((s) => Math.abs(s - a.x) > 3) ?? a.x; // shuttle between docking spots
         for (let i = 0; i < 8 && !a.stops && Math.abs(to - a.x) < 3; i++) to = a.min + Math.floor(rnd() * (a.max - a.min + 1));
@@ -111,7 +111,7 @@ export function createCrew(rnd, audio) {
     // Someone idle says something every few seconds.
     if (speaker && t > speaker.end) speaker = null;
     if (!speaker && chatter && t > nextTalk) {
-      const idle = agents.filter((a) => a.state === 'work' && awake(a));
+      const idle = agents.filter((a) => a.state === 'work' && awake(a) && !a.hidden);
       if (idle.length) {
         const a = idle[Math.floor(rnd() * idle.length)];
         const text = a.quips[Math.floor(rnd() * a.quips.length)];
@@ -138,6 +138,7 @@ export function createCrew(rnd, audio) {
     // Robots that roam in front are drawn last.
     list.sort((a, b) => (a.front ? 1 : 0) - (b.front ? 1 : 0));
     for (const a of list) {
+      if (a.hidden) continue; // tucked up in bed: the NOC draws it
       const lit = awake(a);
       const walking = a.state === 'walk';
       const phase = walking ? Math.floor(Math.abs(a.x - a.from) / 1.6) % 4 : 0;
@@ -145,7 +146,7 @@ export function createCrew(rnd, audio) {
       const x = Math.round(a.x);
       const work = !walking && lit;
       // Asleep robots are drawn entirely in the unlit colour.
-      g.tinted(lit ? 0 : C.greyDark, () => (a.box = a.draw(g, x, a.feet, {
+      g.tinted(lit ? 0 : C.greyDark, () => (a.box = a.draw(g, x, a.feet - Math.round(liftOf(a, t)), {
         t,
         asleep: !lit,
         walk: ['stand', 'stepA', 'stand', 'stepB'][phase],
@@ -166,7 +167,6 @@ export function createCrew(rnd, audio) {
         const tag = `▾ ${TITLES[a.id] ?? a.robot.label}`;
         g.text(x + Math.floor((W - tag.length) / 2), a.box.y - 1, tag, C.white);
       }
-      if (a.cable && lit) drawCable(g, a.box.rh, t);
     }
     if (upper) {
       for (const s of sketches) drawSketch(g, s, t);
@@ -210,32 +210,6 @@ export function createCrew(rnd, audio) {
       g.text(UI_X + 2, y + 4, '└──┘', tone);
       g.text(UI_X, y + 5, '└──────┘', C.cyanDim);
     });
-
-    // Server rack with blinking lights.
-    g.tinted(isAwake('ship', 0.3) ? 0 : C.greyDark, () => {
-      const y = 40;
-      g.text(RACK_X, y, '╔═════════╗', C.grey);
-      for (let j = 1; j < 9; j++) {
-        g.text(RACK_X, y + j, j % 2 ? '║`````````║' : '╟─────────╢', C.grey);
-        if (j % 2) {
-          for (let i = 0; i < 7; i++) {
-            const on = hash(Math.floor(t * (3 + j)) * 31 + i * 7 + j) % 4;
-            g.put(RACK_X + 2 + i, y + j, '▪', on === 0 ? C.amber : on === 1 ? C.greenDark : C.green);
-          }
-        }
-      }
-      g.text(RACK_X, y + 9, '╚═════════╝', C.grey);
-    });
-  }
-
-  function drawCable(g, hand, t) {
-    const y = hand.y;
-    const x1 = RACK_X - 1;
-    for (let x = hand.x + 2; x < x1; x++) {
-      const sag = Math.round(Math.sin(((x - hand.x) / (x1 - hand.x)) * Math.PI) * 1.2);
-      g.put(x, y + sag, '·', (x + Math.floor(t * 12)) % 6 === 0 ? C.amber : C.amberDim);
-    }
-    g.put(x1, y, '╼', C.amber);
   }
 
   function drawSketch(g, s, t) {
@@ -256,6 +230,12 @@ export function createCrew(rnd, audio) {
     update,
     draw,
     set chatter(v) { chatter = v; },
+    // Send a robot somewhere (used by the NOC to move the OPS robot).
+    walkTo(id, x, t, speed) {
+      const a = agents.find((r) => r.id === id);
+      if (!a) return;
+      Object.assign(a, { from: a.x, to: x, t0: t, dur: Math.abs(x - a.x) / speed + 0.2, dir: Math.sign(x - a.x) || 1, state: 'walk' });
+    },
     // Make one robot say a line now. It stops moving while it talks.
     say(id, text, t, hold = 1.2 + text.length * 0.06 + 1.4) {
       const a = agents.find((x) => x.id === id);
@@ -277,7 +257,7 @@ function drawBubble(g, agent, text, n, others) {
   const blocked = (x0) => x0 < 0 || x0 + w > WORLD_COLS - 2 ||
     others.some((o) => o !== agent && o.box && o.box.x < x0 + w && o.box.x + W > x0);
   // Both sides crowded: put it above the head instead, pointing down.
-  const above = blocked(right) && blocked(leftX);
+  const above = agent.bubble === 'above' || (blocked(right) && blocked(leftX));
   const left = !above && (agent.bubble === 'left' ? !blocked(leftX) || blocked(right) : blocked(right));
   const x = above ? box.x + Math.floor((W - w) / 2) : left ? leftX : right;
   const y = above ? Math.max(0, box.y - 3) : Math.max(0, box.y + 1);
@@ -287,6 +267,13 @@ function drawBubble(g, agent, text, n, others) {
   g.text(x, y + 2, '╰' + '─'.repeat(w - 2) + '╯', C.steel);
   if (above) g.put(x + Math.floor(w / 2), y + 2, '┬', C.steel);
   else g.put(left ? x + w : x - 1, y + 1, left ? '▶' : '◀', C.steel);
+}
+
+// A little jump when a robot springs to its feet: up two rows and back down.
+function liftOf(a, t) {
+  if (!a.wokeAt) return 0;
+  const p = (t - a.wokeAt) / 0.45;
+  return p > 0 && p < 1 ? Math.sin(p * Math.PI) * 2.4 : 0;
 }
 
 function easeInOutSine(p) {

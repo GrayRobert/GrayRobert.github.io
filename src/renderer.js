@@ -9,7 +9,7 @@ export const FONT = 'JetBrains Mono';
 const CELL_RATIO = 1.9; // cell height / cell width
 const ADVANCE = 0.6; // JetBrains Mono advance width in em
 
-const MAX_CANVAS_W = 8192; // keeps the long world canvas inside every browser's limits
+const MAX_CANVAS_W = 10240; // keeps the long world canvas inside every browser's limits
 
 // stage: element whose size decides the cell size. viewCols: how many columns must fit
 // across it (the canvas itself can be wider). cell: borrow another renderer's cell size.

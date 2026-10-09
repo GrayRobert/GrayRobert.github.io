@@ -9,11 +9,17 @@
   </head>
   <body>
     <a class="skip-link" href="#cv">Skip to the plain text CV</a>
-    <button id="plain-toggle" type="button" aria-pressed="false">≡ plain CV</button>
+    <div id="page-links">
+      <button id="making-toggle" type="button" aria-pressed="false">? how this was made</button>
+      <button id="plain-toggle" type="button" aria-pressed="false">≡ plain CV</button>
+    </div>
     <main id="stage" class="crt" aria-label="Animated ASCII factory. Use the crew list or the plain text CV to read the content."></main>
     <nav id="crew-nav" class="sr-only-focusable" aria-label="Meet the crew"></nav>
     <article id="cv" class="cv" tabindex="-1" aria-label="Robert Gray, plain text CV">
       <!-- CV -->
+    </article>
+    <article id="making" class="cv making" tabindex="-1" aria-label="How this site was made">
+      <!-- MAKING -->
     </article>
     <div id="stats" hidden></div>
     <script type="module" src="/src/main.js"></script>

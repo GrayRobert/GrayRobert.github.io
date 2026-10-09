@@ -248,7 +248,7 @@ const TOOLS = {
     g.text(x0, y0 + 2, '│`│`│`│', c);
     g.text(x0, y0 + 3, '└┬┴─┴─┘', c);
     if (asleep) return;
-    const phase = Math.floor(t / 1.5) % 6;
+    const phase = ((Math.floor(t / 1.5) % 6) + 6) % 6 || 0; // always 0 to 5, even for odd values of t
     const cols = [[2, 1, 0], [1, 2, 0], [1, 1, 1], [0, 2, 1], [0, 1, 2], [1, 0, 2]][phase];
     const colors = [C.red, C.amber, C.green];
     cols.forEach((n, k) => {

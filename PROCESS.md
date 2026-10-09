@@ -182,3 +182,9 @@ Real browser, 1512 x 945 at 2x, canvas 7520 x 1620: 120 fps, 0.5 ms of work per 
 
 1. **Edits to content files didn't reload the dev page at first.** Vite only reports changes to files in its module graph, and Markdown read by the loader isn't in it. Fix: the plugin watches `content/` itself, invalidates the virtual module and sends a full reload. Tested by editing the CTO pitch, watching the open page reload by itself, then reverting.
 2. **The machine's GitHub key turned out to be a deploy key** for a different repo under a different account name. It can't create or push a new repo, so publishing waits on Robert logging in.
+
+### Going live
+
+- **Address:** https://grayrobert.github.io/, from the public repo `GrayRobert/GrayRobert.github.io`.
+- **Commit emails:** before the first push, all commits were rewritten from Robert's work email to his private GitHub address, so the public history doesn't expose it. The project's local git config keeps it that way.
+- **Gotcha:** because the repo is named `<user>.github.io`, GitHub switched Pages on by itself in the old "publish the branch" mode, and that build landed 23 seconds after ours. It overwrote the real site with the raw source page, which can't run without the build step. Fix: switch Pages to workflow mode, then re-run the deploy. The live site was then checked: 227 KB single file served, preview image served, factory running, no console errors.

@@ -4,7 +4,7 @@ import { createWorld } from './world.js';
 import { createAudio } from './audio.js';
 import { createCards } from './card.js';
 import { createCamera } from './camera.js';
-import { createHud } from './hud.js';
+import { createLeverPanel } from './hud.js';
 import { createTour, SCENES } from './tour.js';
 import { createTourUI } from './tourui.js';
 import { WORLD_COLS, ROWS, view, updateViewCols, viewFor, ZONES } from './layout.js';
@@ -39,7 +39,9 @@ const world = createWorld({ seed: Number(params.get('seed') ?? 7), audio });
 const cards = createCards();
 const ui = createTourUI((i) => tour.go(i), () => tour.skip());
 const tour = createTour({ world, camera, ui });
-const hud = createHud(stage, renderer, { onPower: togglePower, onSound: toggleSound, soundOn: !audio.muted });
+const hud = createLeverPanel({ onPower: togglePower, onSound: toggleSound, soundOn: !audio.muted });
+const soundToggle = document.getElementById('sound-toggle');
+showSound();
 // Start on the opening shot (on a phone that means zoomed out enough to fit the name sign).
 const opening = viewFor('base');
 camera.to(opening.cx, { zoom: opening.zoom, dur: 0 });
@@ -81,7 +83,12 @@ function togglePower() {
 function toggleSound() {
   audio.setMuted(!audio.muted);
   hud.setSound(!audio.muted);
+  showSound();
   audio.clunk();
+}
+function showSound() {
+  soundToggle.textContent = audio.muted ? 'sound: off' : 'sound: on';
+  soundToggle.setAttribute('aria-pressed', String(!audio.muted));
 }
 
 // Text pages: the plain CV and "how this was made", as real HTML, without the factory.
@@ -203,9 +210,11 @@ function frame(nowMs) {
 
   grid.clear();
   if (glyphSheet) drawGlyphSheet(grid);
-  else world.draw(grid, t);
+  else {
+    world.draw(grid, t);
+    hud.draw(grid, t, dt);
+  }
   const changed = renderer.paint();
-  hud.draw(t, dt);
   ui.update();
 
   const work = performance.now() - t0;
@@ -222,23 +231,34 @@ function frame(nowMs) {
 }
 requestAnimationFrame(frame);
 
-// Pointer: hovering a robot lights it up, clicking opens its skill card.
-function robotUnder(e) {
-  if (!world.powered) return null;
-  const cell = renderer.cellAt(e.clientX, e.clientY);
-  return cell ? world.hitAt(cell.x, cell.y) : null;
+// Pointer: levers respond any time. Robots light up on hover and open their card on click.
+function cellUnder(e) {
+  return renderer.cellAt(e.clientX, e.clientY);
+}
+function robotUnder(cell) {
+  return world.powered && cell ? world.hitAt(cell.x, cell.y) : null;
 }
 stage.addEventListener('pointermove', (e) => {
   if (e.pointerType === 'touch') return;
-  const id = robotUnder(e);
+  const cell = cellUnder(e);
+  const lever = cell ? hud.hitAt(cell.x, cell.y) : null;
+  const id = lever ? null : robotUnder(cell);
+  hud.setHover(lever);
   world.setHover(id);
-  stage.style.cursor = id ? 'pointer' : camera.free ? 'grab' : '';
+  stage.style.cursor = lever || id ? 'pointer' : camera.free ? 'grab' : '';
 });
-stage.addEventListener('pointerleave', () => world.setHover(null));
+stage.addEventListener('pointerleave', () => {
+  world.setHover(null);
+  hud.setHover(null);
+});
 stage.addEventListener('click', (e) => {
-  const id = robotUnder(e);
+  const cell = cellUnder(e);
+  const lever = cell ? hud.hitAt(cell.x, cell.y) : null;
+  if (lever) return hud.pull(lever);
+  const id = robotUnder(cell);
   if (id) cards.open(id);
 });
+soundToggle.addEventListener('click', toggleSound);
 
 // Keys: Enter or Space pulls the lever. Then arrows and Space move through the tour,
 // or from station to station in explore mode.

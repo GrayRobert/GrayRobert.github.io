@@ -46,8 +46,8 @@ export const STATION = {
 
 // Where the camera centres for each zone.
 export const VIEW = {
-  base: 90,
-  why: 90,
+  base: 0, // 0 means "as far left as the camera goes", so the levers are always in shot
+  why: 0,
   plan: 120,
   design: 170,
   build: 228,
@@ -95,6 +95,6 @@ export function screenCentreY(stageHeight) {
 // Camera centre (and zoom) for a zone, for whichever width is active.
 export function viewFor(zone) {
   if (!isNarrow()) return { cx: VIEW[zone], zoom: 1 };
-  if (zone === 'base') return { cx: 54, zoom: Math.min(1, view.cols / 84) }; // fit the whole name sign
+  if (zone === 'base') return { cx: 48, zoom: Math.min(1, view.cols / 96) }; // fit the levers and the whole name sign
   return { cx: NARROW[zone], zoom: 1 };
 }

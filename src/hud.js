@@ -4,7 +4,7 @@
 
 import { createGrid, C } from './grid.js';
 import { createRenderer } from './renderer.js';
-import { ROWS, VIEW_COLS } from './layout.js';
+import { ROWS, view, screenCentreY } from './layout.js';
 
 const COLS = 13;
 const HUD_ROWS = 9;
@@ -20,8 +20,8 @@ export function createHud(stage, mainRenderer, { onPower, onSound, soundOn }) {
 
   function place() {
     const { w, h } = mainRenderer.cssCell;
-    const left = stage.clientWidth / 2 - (VIEW_COLS / 2 - 1) * w;
-    const top = stage.clientHeight / 2 - (ROWS / 2 - TOP) * h;
+    const left = stage.clientWidth / 2 - (Math.min(view.cols, stage.clientWidth / w) / 2 - 1) * w;
+    const top = screenCentreY(stage.clientHeight) - (ROWS / 2 - TOP) * h;
     renderer.layer.style.transform = `translate(${left}px, ${top}px)`;
   }
   place();

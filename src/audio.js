@@ -119,6 +119,12 @@ export function createAudio() {
   return {
     start,
     get muted() { return muted; },
+    // Current output level, for checking the mute actually took.
+    get level() { return ctx ? master.gain.value : 0; },
+    get state() { return ctx?.state ?? 'none'; },
+    // Power off silences everything by suspending the audio engine itself.
+    sleep() { ctx?.suspend(); },
+    wake() { if (ctx?.state === 'suspended') ctx.resume(); },
 
     setMuted(m) {
       muted = m;

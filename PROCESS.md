@@ -111,3 +111,28 @@ The whole brief was handed over as one context file. Phase 0's instruction, in s
 ### Timing
 
 The whole tour runs from lever to explore mode in about 90 seconds: boot 0s, overview 6.6s, why 14.5s, plan 30s, design 40.4s, build 47.6s, secure 58.2s, test 70.8s, ship 80.3s, explore 90s.
+
+## Phase 3: the CV itself, keyboard, phones, and real content
+
+**Date:** 2026-10-09
+
+### What Robert gave and asked for
+
+- His Word CV. Every skill card is now filled from it, and nothing on the cards is invented. Contact details are left off the site.
+- "What the CV is trying to say is that Robert Gray, a CTO and Engineering Manager, can run an entire dark factory, a fleet of AI agents, real teams, or just do it all." That line is now the spine of the copy: the page description, the opening of the plain CV, and the tour's intro caption.
+- "Power and sound don't turn off." PWR now switches the factory off: lights out, belt stopped, audio engine suspended. Pulling it again resumes the tour where it was. SND was tested in a real browser and drops the output to exactly zero.
+
+### Decisions
+
+- **The CV is real HTML in the page,** built from `content.json` by a tiny Vite plugin at build time. Screen readers and search engines get the actual text. In factory mode it's visually hidden. The "≡ plain CV" button (or a `#cv` link) shows it as a clean page with roles, experience, education and interests.
+- **Every robot is a real button.** A visually hidden "Meet the crew" list has one button per role. Focusing one glides the camera to that robot and lights it up, so the robot itself is the focus indicator. Enter opens its card, and Escape returns focus to the robot. There's a skip link to the plain CV at the very top.
+- **Phones get a closer camera,** not a squashed factory. The view drops from 180 columns to about 64 on a phone, so cells stay at least 6px wide and the text stays readable. The tour has its own framing for each station at that width, the opening shot zooms just enough to fit the name sign, and the factory sits higher so the caption and scene strip don't cover it. Touch devices also skip the wide bloom and the CRT overlay, and cap the canvas size for mobile browser limits.
+- **Reduced motion** (the system setting) gets the factory fully lit and still, in explore mode, with everything still clickable.
+
+### What went wrong, and the fixes
+
+1. **The plain CV stopped after two sections.** `html` still had `overflow: hidden` from the factory layout. Plain mode now unlocks scrolling on both `html` and `body`.
+2. **Resizing while the plain CV was showing broke the factory.** The hidden stage measured 0 x 0, so the cell size became NaN. Sizing now skips while hidden and re-runs on the way back.
+3. **On a phone, the opening shot cut the name sign in half** and the lever callout ran off screen. The opening view zooms to fit the sign, and the callout wraps onto shorter lines.
+4. **Speech bubbles still covered neighbours in the crowded build zone.** When both sides are taken, the bubble goes above the head.
+5. **Two places where the CV disagreed with the original brief:** the engineer to TPM to CTO progression was at Topflight Travel Group (not Directski.com), and the BSc ran 2017 to 2019. The CV wins. The "BSc in one year" claim is left out until Robert confirms it.

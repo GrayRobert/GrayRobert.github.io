@@ -268,3 +268,148 @@ body {
   .crt::after { animation: none; }
   .card[open] { animation: none; }
 }
+
+/* The CV is always in the page as real HTML. In factory mode it is visually hidden but
+   still read by screen readers and search engines. Plain mode shows it as a page. */
+.cv {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+body.plain {
+  overflow: auto;
+}
+body.plain #stage,
+body.plain .tour,
+body.plain #crew-nav {
+  display: none;
+}
+body.plain .cv {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  display: block;
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 72px 16px 64px;
+  color: #c9f7d6;
+  font: 15px/1.65 'JetBrains Mono', ui-monospace, monospace;
+  outline: none;
+}
+.cv h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #33ff66;
+  text-shadow: 0 0 12px rgba(51, 255, 102, 0.45);
+}
+.cv h2 {
+  margin: 40px 0 6px;
+  font-size: 18px;
+  color: #33ff66;
+}
+.cv h2::before {
+  content: '┤ ';
+  color: #1f9e45;
+}
+.cv .cv-role-line,
+.cv .cv-pitch {
+  color: #ffb000;
+}
+.cv ul {
+  padding-left: 2ch;
+}
+.cv li::marker {
+  content: '▸ ';
+  color: #1f9e45;
+}
+.cv .cv-label,
+.cv .cv-dates {
+  color: #8fa39b;
+}
+.cv .cv-intro {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid #25342f;
+  color: #8fa39b;
+}
+
+/* Skip link and the plain CV toggle. */
+.skip-link {
+  position: fixed;
+  left: 8px;
+  top: -40px;
+  z-index: 10;
+  padding: 6px 10px;
+  color: #0b0f1a;
+  background: #33ff66;
+  font: 13px 'JetBrains Mono', ui-monospace, monospace;
+}
+.skip-link:focus {
+  top: 8px;
+}
+#plain-toggle {
+  position: fixed;
+  top: 10px;
+  right: 12px;
+  z-index: 6;
+  padding: 6px 10px;
+  font: 12px/1 'JetBrains Mono', ui-monospace, monospace;
+  color: #8fa39b;
+  background: rgba(11, 15, 26, 0.85);
+  border: 1px solid #25342f;
+  cursor: pointer;
+}
+#plain-toggle:hover,
+#plain-toggle:focus-visible {
+  color: #eafff0;
+  border-color: #8fa39b;
+  outline: none;
+}
+
+/* One button per robot, for keyboard and screen reader users. Visually hidden: when
+   one has focus, the robot itself lights up in the factory instead. */
+.sr-only-focusable button {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+}
+
+/* Phones and tablets: lighter effects, compact tour controls. */
+body.lite .glow.far {
+  display: none;
+}
+@media (max-width: 700px) {
+  .caption {
+    font-size: 13px;
+  }
+  .strip {
+    gap: 3px;
+  }
+  .strip button {
+    font-size: 11px;
+    padding: 6px 6px;
+  }
+  .strip .skip {
+    margin-left: 4px;
+  }
+}
+.cv .cv-tagline {
+  color: #eafff0;
+  font-size: 17px;
+}
+html.plain,
+html.plain body {
+  overflow: auto;
+  height: auto;
+}

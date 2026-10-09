@@ -45,6 +45,7 @@ export function createTourUI(onPick, onSkip) {
 
   return {
     show() { root.hidden = false; },
+    hide() { root.hidden = true; },
     caption(text, { log = false } = {}) {
       lines = Array.isArray(text) ? text : [text];
       isLog = log;

@@ -6,6 +6,7 @@ const server = await createServer({ server: { port: 5198, strictPort: true }, lo
 await server.listen();
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+if (process.env.REDUCED) await page.emulateMedia({ reducedMotion: 'reduce' });
 page.on('pageerror', (e) => console.log('PAGE ERROR', e.message));
 await page.goto(`http://localhost:5198/?${query}`);
 await page.waitForFunction(() => window.factory?.perf.frames > 5);

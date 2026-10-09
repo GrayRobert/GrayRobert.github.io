@@ -32,7 +32,7 @@ function render(agent) {
   const frag = document.createDocumentFragment();
   frag.append(
     el('div', { className: 'card-bar' }, [
-      el('h2', { id: 'card-title' }, [`┤ ${agent.title} ├`]),
+      el('h2', { id: 'card-title' }, [`┤ ${agent.title}`]),
       el('button', { className: 'card-close', type: 'button', ariaLabel: 'Close', onclick: (e) => e.target.closest('dialog').close() }, ['[x]']),
     ]),
     el('p', { className: 'card-pitch' }, [text(agent.pitch)]),

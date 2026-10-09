@@ -1,15 +1,15 @@
 // The camera moves the whole world canvas with a CSS transform, so pans and zooms are
 // smooth (sub-cell, on the GPU) while the art itself stays on the character grid.
 
-import { ROWS, VIEW_COLS, WORLD_COLS } from './layout.js';
+import { ROWS, WORLD_COLS, view, screenCentreY } from './layout.js';
 
 export function createCamera(stage, renderer) {
-  const cam = { cx: VIEW_COLS / 2, zoom: 1 };
+  const cam = { cx: view.cols / 2, zoom: 1 };
   let move = null; // { from, to, t0, dur }
   let free = false; // explore mode: the visitor can drag and scroll
 
   function clampX(cx, zoom) {
-    const half = VIEW_COLS / 2 / zoom;
+    const half = view.cols / 2 / zoom;
     if (half * 2 >= WORLD_COLS) return WORLD_COLS / 2;
     return Math.max(half, Math.min(WORLD_COLS - half, cx));
   }
@@ -17,7 +17,7 @@ export function createCamera(stage, renderer) {
   function apply() {
     const { w, h } = renderer.cssCell;
     const tx = stage.clientWidth / 2 - cam.cx * w * cam.zoom;
-    const ty = stage.clientHeight / 2 - (ROWS / 2) * h * cam.zoom;
+    const ty = screenCentreY(stage.clientHeight) - (ROWS / 2) * h * cam.zoom;
     renderer.layer.style.transform = `translate(${tx}px, ${ty}px) scale(${cam.zoom})`;
   }
 
@@ -64,7 +64,10 @@ export function createCamera(stage, renderer) {
     cam.cx = clampX(cam.cx + d / (renderer.cssCell.w * cam.zoom), cam.zoom);
   }, { passive: false });
 
-  window.addEventListener('resize', apply);
+  window.addEventListener('resize', () => {
+    cam.cx = clampX(cam.cx, cam.zoom);
+    apply();
+  });
 
   return {
     update,
@@ -85,7 +88,7 @@ export function createCamera(stage, renderer) {
     },
     // Columns currently on screen, for culling and for keyboard panning.
     get span() {
-      const half = VIEW_COLS / 2 / cam.zoom;
+      const half = view.cols / 2 / cam.zoom;
       return [cam.cx - half, cam.cx + half];
     },
   };

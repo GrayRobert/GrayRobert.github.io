@@ -13,7 +13,8 @@ const MAX_CANVAS_W = 8192; // keeps the long world canvas inside every browser's
 
 // stage: element whose size decides the cell size. viewCols: how many columns must fit
 // across it (the canvas itself can be wider). cell: borrow another renderer's cell size.
-export function createRenderer(stage, grid, { viewCols = grid.cols, cell = null, className = 'world' } = {}) {
+// maxArea: phones cap the pixel area of a canvas, so callers pass a limit there.
+export function createRenderer(stage, grid, { viewCols = grid.cols, cell = null, className = 'world', maxArea = Infinity } = {}) {
   const layer = document.createElement('div');
   layer.className = className;
   const main = document.createElement('canvas');
@@ -39,13 +40,16 @@ export function createRenderer(stage, grid, { viewCols = grid.cols, cell = null,
   let glowOn = true;
 
   function resize() {
+    if (!cell && !stage.clientWidth) return; // hidden (plain CV mode): size it when it comes back
     dpr = Math.min(window.devicePixelRatio || 1, 3);
     if (cell) {
       ({ w: cw, h: chH } = cell());
     } else {
       const availW = stage.clientWidth * dpr;
       const availH = stage.clientHeight * dpr;
-      cw = Math.floor(Math.min(availW / viewCols, availH / (grid.rows * CELL_RATIO), MAX_CANVAS_W / grid.cols));
+      const cols = typeof viewCols === 'function' ? viewCols() : viewCols;
+      const byArea = Math.sqrt(maxArea / (grid.cols * grid.rows * CELL_RATIO));
+      cw = Math.floor(Math.min(availW / cols, availH / (grid.rows * CELL_RATIO), MAX_CANVAS_W / grid.cols, byArea));
       cw = Math.max(2, cw);
       chH = Math.round(cw * CELL_RATIO);
     }

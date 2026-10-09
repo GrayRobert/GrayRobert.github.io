@@ -2,13 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Robert Gray · The Dark Factory</title>
-    <meta name="description" content="Robert Gray, CTO. A living ASCII factory where robot agents build software." />
+    <meta name="description" content="Robert Gray, CTO and Engineering Manager. He can run the whole dark factory: a fleet of AI agents, a real team, or every station himself." />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <main id="stage" class="crt" aria-label="Animated ASCII factory"></main>
+    <a class="skip-link" href="#cv">Skip to the plain text CV</a>
+    <button id="plain-toggle" type="button" aria-pressed="false">≡ plain CV</button>
+    <main id="stage" class="crt" aria-label="Animated ASCII factory. Use the crew list or the plain text CV to read the content."></main>
+    <nav id="crew-nav" class="sr-only-focusable" aria-label="Meet the crew"></nav>
+    <article id="cv" class="cv" tabindex="-1" aria-label="Robert Gray, plain text CV">
+      <!-- CV -->
+    </article>
     <div id="stats" hidden></div>
     <script type="module" src="/src/main.js"></script>
   </body>

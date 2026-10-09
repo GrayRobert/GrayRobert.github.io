@@ -55,5 +55,43 @@ export const VIEW = {
   ship: 320,
 };
 
-export const CAMERA_MIN = VIEW_COLS / 2;
-export const CAMERA_MAX = WORLD_COLS - VIEW_COLS / 2;
+// On narrow screens the camera shows fewer columns so text stays readable.
+// These centres frame each station for that closer view.
+const NARROW = {
+  base: 54,
+  why: 58,
+  plan: 100,
+  design: 160,
+  build: 226,
+  secure: 296,
+  test: 334,
+  ship: 372,
+};
+
+// How many columns fit across the screen right now. Updated on resize.
+export const view = { cols: VIEW_COLS };
+export const MIN_CELL_CSS = 6; // below this, text is too small to read
+
+export function updateViewCols(width, height) {
+  const fitByHeight = height / (ROWS * 1.9); // the cell size the height allows
+  const cell = Math.min(width / VIEW_COLS, fitByHeight);
+  view.cols = cell >= MIN_CELL_CSS ? VIEW_COLS : Math.max(56, Math.floor(width / Math.min(MIN_CELL_CSS, fitByHeight)));
+  view.cols = Math.min(VIEW_COLS, view.cols);
+  return view.cols;
+}
+
+export const isNarrow = () => view.cols < 140;
+
+// Screen y (CSS px) the world is centred on. On narrow screens the tour caption and
+// strip take the bottom of the screen, so the factory sits higher, clear of them.
+const NARROW_UI_HEIGHT = 190;
+export function screenCentreY(stageHeight) {
+  return isNarrow() ? Math.max(0, stageHeight - NARROW_UI_HEIGHT) / 2 + 24 : stageHeight / 2;
+}
+
+// Camera centre (and zoom) for a zone, for whichever width is active.
+export function viewFor(zone) {
+  if (!isNarrow()) return { cx: VIEW[zone], zoom: 1 };
+  if (zone === 'base') return { cx: 54, zoom: Math.min(1, view.cols / 84) }; // fit the whole name sign
+  return { cx: NARROW[zone], zoom: 1 };
+}

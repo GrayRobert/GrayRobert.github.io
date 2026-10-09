@@ -276,14 +276,17 @@ function drawBubble(g, agent, text, n, others) {
   const leftX = box.x - w - 1;
   const blocked = (x0) => x0 < 0 || x0 + w > WORLD_COLS - 2 ||
     others.some((o) => o !== agent && o.box && o.box.x < x0 + w && o.box.x + W > x0);
-  const left = agent.bubble === 'left' ? !blocked(leftX) || blocked(right) : blocked(right) && !blocked(leftX);
-  const x = left ? leftX : right;
-  const y = Math.max(0, box.y + 1);
+  // Both sides crowded: put it above the head instead, pointing down.
+  const above = blocked(right) && blocked(leftX);
+  const left = !above && (agent.bubble === 'left' ? !blocked(leftX) || blocked(right) : blocked(right));
+  const x = above ? box.x + Math.floor((W - w) / 2) : left ? leftX : right;
+  const y = above ? Math.max(0, box.y - 3) : Math.max(0, box.y + 1);
   g.text(x, y, '╭' + '─'.repeat(w - 2) + '╮', C.steel);
   g.text(x, y + 1, '│`' + '`'.repeat(text.length) + '`│', C.steel);
   g.text(x + 2, y + 1, shown, C.white);
   g.text(x, y + 2, '╰' + '─'.repeat(w - 2) + '╯', C.steel);
-  g.put(left ? x + w : x - 1, y + 1, left ? '▶' : '◀', C.steel);
+  if (above) g.put(x + Math.floor(w / 2), y + 2, '┬', C.steel);
+  else g.put(left ? x + w : x - 1, y + 1, left ? '▶' : '◀', C.steel);
 }
 
 function easeInOutSine(p) {

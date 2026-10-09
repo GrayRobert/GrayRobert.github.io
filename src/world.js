@@ -10,7 +10,7 @@ import { bigText, bigTextWidth } from './bigtext.js';
 import { createCrew, hash } from './crew.js';
 import { createStations } from './stations.js';
 import {
-  WORLD_COLS, FLOOR_Y, BELT_Y, BELT_X0, BELT_X1, PKG_W, ZONES, STATION, zoneAt,
+  WORLD_COLS, FLOOR_Y, BELT_Y, BELT_X0, BELT_X1, PKG_W, ZONES, STATION, zoneAt, isNarrow,
 } from './layout.js';
 
 const STAGES = {
@@ -461,14 +461,16 @@ export function createWorld({ seed = 7, audio = null } = {}) {
 
   // Before power on: a callout above the belt, with marching dots leading to the lever.
   function drawPowerHint(g, t) {
-    const line1 = 'pull the PWR lever to start the factory';
-    const line2 = 'or press enter  ·  sound on';
-    const w = line1.length + 6;
+    // Narrow screens get the same message on shorter lines.
+    const lines = isNarrow()
+      ? [['pull the PWR lever', C.amber], ['to start the factory', C.amber], ['enter works too · sound on', C.steel]]
+      : [['pull the PWR lever to start the factory', C.amber], ['or press enter  ·  sound on', C.steel]];
+    const inner = Math.max(...lines.map(([s]) => s.length));
+    const w = inner + 6;
     const x0 = 32, y0 = 27;
-    g.box(x0, y0, w, 4, C.amberDim, 'round');
-    g.fill(x0 + 1, y0 + 1, w - 2, 2, ' ', 0);
-    g.text(x0 + 3, y0 + 1, line1, C.amber);
-    g.text(x0 + 3 + Math.floor((line1.length - line2.length) / 2), y0 + 2, line2, C.steel);
+    g.box(x0, y0, w, lines.length + 2, C.amberDim, 'round');
+    g.fill(x0 + 1, y0 + 1, w - 2, lines.length, ' ', 0);
+    lines.forEach(([s, col], i) => g.text(x0 + 3 + Math.floor((inner - s.length) / 2), y0 + 1 + i, s, col));
     const path = [];
     for (let x = x0 - 1; x > 14; x--) path.push([x, y0 + 1]);
     for (let y = y0 + 1; y > 6; y--) path.push([14, y]);
@@ -492,9 +494,22 @@ export function createWorld({ seed = 7, audio = null } = {}) {
       power.t0 = t;
       now = t;
       audio?.start();
+      audio?.wake();
       if (!silent) audio?.clunk();
       light('base', silent);
       mode = 'tour';
+    },
+    // Everything goes dark and still. The tour remembers where it was.
+    powerOff() {
+      if (!power.on) return;
+      power.on = false;
+      for (const k of Object.keys(lit)) delete lit[k];
+      mode = 'off';
+      belt.target = null;
+      crew.chatter = false;
+      crew.hush();
+      audio?.weld(0);
+      audio?.sleep();
     },
     light,
     lightAll(instant = false) { for (const z of ZONES) light(z.id, instant); },

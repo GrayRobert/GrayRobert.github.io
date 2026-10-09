@@ -2,7 +2,7 @@
 // clock. Jumping to a scene cancels the running script and settles the factory into
 // the state the earlier scenes would have left it in. window.deck drives it by hand.
 
-import { PKG_W, STATION, VIEW, ZONES } from './layout.js';
+import { PKG_W, STATION, ZONES, WORLD_COLS, view as screen, viewFor } from './layout.js';
 
 export const SCENES = [
   { id: 'boot', name: 'power' },
@@ -32,7 +32,10 @@ export function createTour({ world, camera, ui }) {
   const wait = (s) => new Promise((res, rej) => waits.push({ at: now + s, res, rej, token }));
   const until = (fn, max = 20) => new Promise((res, rej) => waits.push({ fn, at: now + max, res, rej, token }));
   const say = (id, text) => world.say(id, text, now);
-  const view = (zone, opts = {}) => camera.to(VIEW[zone], { now, dur: 1.8, ...opts });
+  const view = (zone, opts = {}) => {
+    const v = viewFor(zone);
+    camera.to(v.cx, { now, dur: 1.8, zoom: v.zoom, ...opts });
+  };
   const stop = (key) => STATION[key] - PKG_W / 2;
   async function carry(pkg, key, x = stop(key)) {
     world.moveTo(pkg, x);
@@ -49,9 +52,9 @@ export function createTour({ world, camera, ui }) {
     },
 
     async overview() {
-      ui.caption('Seven stations, ten robots. Each robot is a role Robert has held or can cover.');
-      camera.to(200, { zoom: 0.45, dur: 2.4, now });
-      await wait(5.2);
+      ui.caption('Seven stations, ten robots. Each one is a role Robert has held or can cover. He can run the whole factory: a fleet of AI agents, a real team, or every station himself.');
+      camera.to(WORLD_COLS / 2, { zoom: Math.min(1, screen.cols / WORLD_COLS), dur: 2.4, now });
+      await wait(7.5);
       view('why', { dur: 2 });
       await wait(2);
     },
@@ -230,6 +233,12 @@ export function createTour({ world, camera, ui }) {
     goto(id) {
       const i = SCENES.findIndex((s) => s.id === id);
       if (i >= 0) go(i);
+    },
+    // Cancel whatever is running (power off). The index stays, so it can resume.
+    stop() {
+      token++;
+      for (const w of waits) w.rej(CANCEL);
+      waits = [];
     },
     next() { go(index + 1); },
     prev() { go(Math.max(2, index - 1)); },

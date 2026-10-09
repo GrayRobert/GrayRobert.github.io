@@ -1,12 +1,42 @@
 {
   "person": {
     "name": "Robert Gray",
-    "role": "CTO at Topflight",
-    "summary": "Trained in music and sound engineering. Started in tech support, taught himself web development, and worked his way from systems engineer to CTO.",
+    "role": "CTO and Engineering Manager",
+    "tagline": "Robert Gray can run the whole dark factory. A fleet of AI agents, a real team, or every station himself.",
+    "summary": "Hands-on CTO with 20+ years building and modernising the software, platforms and teams that run commercial businesses. Owns technology strategy, risk and suppliers at board level, and still writes the code.",
+    "experience": [
+      {
+        "title": "Chief Technology Officer",
+        "org": "Topflight Travel Group",
+        "dates": "2011 to present",
+        "detail": "CTO since December 2014. Technical Project Manager from 2012 to 2014. Systems and Software Engineer from 2011 to 2012."
+      },
+      {
+        "title": "IT Systems Administrator",
+        "org": "Harmonia Publishing",
+        "dates": "2010 to 2011",
+        "detail": "Ran ICT systems and end-user support for 60+ staff at a national publisher."
+      },
+      {
+        "title": "IT Administrator and Web Developer",
+        "org": "Eumom",
+        "dates": "2007 to 2010",
+        "detail": "Helped move the platform from Classic ASP to .NET and C#. Built websites and digital advertising campaigns."
+      },
+      {
+        "title": "Technical Services Manager",
+        "org": "ICE Broadband",
+        "dates": "2006 to 2007",
+        "detail": "Built, trained and led the support and installation teams for a wireless ISP serving remote locations."
+      }
+    ],
     "education": [
-      "BSc in Computing, completed in one year, first class honours",
-      "Masters in Leadership, Innovation and Technology, first class honours"
-    ]
+      "MSc Leadership, Innovation and Technology, TU Dublin, First Class Honours. Thesis on what makes software outsourcing succeed.",
+      "BSc Computing, Dublin Business School, First Class Honours. Built an automated machine learning app that predicts and recommends selling prices.",
+      "Lean Six Sigma Green Belt. Trained with Toyota and presented at EU-Japan Lean best-practice visits.",
+      "Sound Technology and Music Performance, Ballyfermot College of Further Education."
+    ],
+    "interests": "Technology and lifelong learning, travel, the outdoors, skiing, cycling and music."
   },
   "agents": [
     {
@@ -14,116 +44,135 @@
       "title": "CEO",
       "pitch": "Sets the direction and keeps the whole factory pointed at it.",
       "skills": [
-        "Oversight across technology, operations and commercial decisions at Topflight",
-        "Masters in Leadership, Innovation and Technology, first class honours",
-        "TODO_ROBERT",
-        "TODO_ROBERT"
+        "Co-develops organisational strategy with the leadership team at Topflight Travel Group",
+        "Leads technology strategy on a rolling five-year horizon with senior leadership",
+        "Owns the systems behind €50M+ in annual turnover",
+        "Owns critical technology procurement and vendor delivery, and makes sure the value is real",
+        "MSc Leadership, Innovation and Technology, First Class Honours"
       ],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "story": "Robert sits at the leadership table as well as the keyboard. He helps set the group's strategy, owns the technology that carries more than €50M a year, and plans five years out. His MSc research looked at what makes software outsourcing actually work.",
+      "tools": ["Technology strategy", "Roadmaps", "Vendor management", "ICT governance"]
     },
     {
       "id": "cto",
       "title": "CTO",
-      "pitch": "Runs the control tower. Builds, fixes and decides what gets built.",
+      "pitch": "Runs the control tower. Decides what gets built, then helps build it.",
       "skills": [
-        "CTO at Topflight, an Irish tour operator",
-        "Oversight across technology, operations and commercial decisions",
-        "Promoted from systems engineer to technical project manager to CTO at Directski.com",
-        "BSc in Computing in one year, first class honours",
-        "TODO_ROBERT"
+        "CTO at Topflight Travel Group since 2014, after joining as an engineer in 2011",
+        "Moved the business from on-premise and bare metal to the cloud with 100% uptime through the move",
+        "Replatformed core reservation and web systems from a legacy monolith to microservices with React, with sub-second page loads",
+        "Introduced agentic AI workflows and AI-assisted review for a measured 3× gain in engineering throughput",
+        "Leads and mentors developers, systems engineers and UI/UX practitioners, plus specialist partners"
       ],
-      "story": "Trained in music and sound engineering, then took a job in tech support at a friend's wireless ISP startup and was running the team within a year. Taught himself web development, joined Directski.com as a systems engineer, and kept getting promoted until he was the CTO.",
-      "tools": ["TODO_ROBERT"]
+      "story": "Trained in sound technology and music performance, then ran support teams for a wireless ISP, administered systems for a national publisher and learned web development on the job. He joined Topflight in 2011 as a systems and software engineer, became technical project manager in 2012 and CTO in 2014. He's still hands-on.",
+      "tools": ["Java", "Python", "JavaScript", "React", "Perl", "AWS", "GCP"]
     },
     {
       "id": "pm",
       "title": "Project Manager",
-      "pitch": "Walks the line with the board. Chases blockers before they become problems.",
+      "pitch": "Walks the line with the board. Clears blockers before they become problems.",
       "skills": [
-        "Technical project manager at Directski.com",
-        "TODO_ROBERT",
-        "TODO_ROBERT"
+        "Technical Project Manager at Topflight Travel Group from 2012 to 2014",
+        "Embedded Lean, Kanban, Scrumban and Agile ways of working across delivery and operations",
+        "Runs the full lifecycle, from discovery and design workshops through testing, release and operations",
+        "Lean Six Sigma Green Belt",
+        "Trained with Toyota and presented at EU-Japan Lean best-practice visits"
       ],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "story": "Robert learned flow from the people who invented it. He trained with Toyota, earned a Lean Six Sigma Green Belt, and built a lean, high-output engineering function around Kanban and Scrumban.",
+      "tools": ["Lean", "Kanban", "Scrumban", "Scrum", "Roadmaps", "Workshops"]
     },
     {
       "id": "design",
       "title": "Product Designer",
       "pitch": "Turns rough ideas into something people can actually use.",
-      "skills": ["TODO_ROBERT", "TODO_ROBERT", "TODO_ROBERT"],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "skills": [
+        "Runs discovery and design workshops at the start of the work, not the end",
+        "Leads a team that includes UI/UX practitioners",
+        "Replatformed customer-facing reservation and web apps with modern React interfaces",
+        "Built websites and digital advertising campaigns at Eumom"
+      ],
+      "story": "Good products start in a workshop, not a code editor. Robert runs the discovery sessions, then works with UI/UX people to turn them into interfaces customers can use without thinking.",
+      "tools": ["Design workshops", "React", "HTML", "CSS"]
     },
     {
       "id": "backend",
       "title": "Backend Engineer",
       "pitch": "Down in the machine room, shaping raw data into things that work.",
       "skills": [
-        "Systems engineer at Directski.com, working in Perl and Java",
-        "TODO_ROBERT",
-        "TODO_ROBERT"
+        "Hands-on in Java, Python and Perl",
+        "Spring Boot, Hibernate, MyBatis and Django",
+        "PostgreSQL, MSSQL and MySQL",
+        "API design, service-oriented architecture and microservices",
+        "Helped move the Eumom platform from Classic ASP to .NET and C#"
       ],
-      "story": "TODO_ROBERT",
-      "tools": ["Perl", "Java", "TODO_ROBERT"]
+      "story": "Robert started at Topflight as a systems and software engineer in 2011, and the reservation systems he now runs are ones he has worked on from the inside. He led their move from a legacy monolith to services and microservices.",
+      "tools": ["Java", "Python", "Perl", "Spring Boot", "Django", "PostgreSQL", "MSSQL", "MySQL"]
     },
     {
       "id": "frontend",
       "title": "Frontend Engineer",
-      "pitch": "Builds the part people see and makes it feel right.",
-      "skills": ["Self taught web developer", "TODO_ROBERT", "TODO_ROBERT"],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "pitch": "Builds the part people see and makes it feel fast.",
+      "skills": [
+        "Rebuilt reservation and web front ends in React with sub-second page loads",
+        "JavaScript, TypeScript, React, Next.js and Vue.js",
+        "Self-taught web developer",
+        "Built company websites and campaigns at Eumom"
+      ],
+      "story": "Robert taught himself web development and never stopped. The latest round was moving business-critical booking flows onto modern React front ends that load in under a second.",
+      "tools": ["JavaScript", "TypeScript", "React", "Next.js", "Vue.js", "HTML", "CSS"]
     },
     {
       "id": "fullstack",
       "title": "Full Stack Engineer",
       "pitch": "Runs between both ends of the stack carrying whatever is needed.",
       "skills": [
-        "Went from self taught web developer to systems engineer",
-        "TODO_ROBERT",
-        "TODO_ROBERT"
+        "Hands-on from the database to the browser, SQL to React",
+        "Builds data pipelines, BI, and statistical and machine learning models",
+        "BSc project: an automated machine learning app that predicts and recommends selling prices",
+        "Docker, CI/CD and automation to tie it all together"
       ],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "story": "Most CTOs pick a lane. Robert still works across all of them, from schema and services to pipelines, models and the interface on top.",
+      "tools": ["Java", "Python", "JavaScript", "SQL", "React", "Docker", "Machine learning"]
     },
     {
       "id": "qa",
       "title": "QA and Test Engineer",
       "pitch": "Will not let an unexplained error go. Not even one odd log line.",
       "skills": [
-        "Spots patterns and anomalies other people scroll past",
-        "Skeptical and diligent by nature",
-        "TODO_ROBERT"
+        "Introduced automated delivery pipelines and AI-assisted review",
+        "Owns testing and release as part of the full delivery lifecycle",
+        "Lean Six Sigma Green Belt: measure it, find the root cause, fix it for good",
+        "Spots patterns and anomalies other people scroll past"
       ],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "story": "Robert describes himself as skeptical, diligent and a bit of a worrier. In QA those are features. If something odd shows up in a log, he wants to know why.",
+      "tools": ["CI/CD", "Jenkins", "Automation", "AI-assisted review"]
     },
     {
       "id": "devops",
       "title": "Systems, DevOps and IT",
       "pitch": "First responder for the systems he built. Yes, even at 2am.",
       "skills": [
-        "Started in tech support at a wireless ISP startup and was running the team within a year",
+        "Moved everything from on-premise and bare metal to AWS and GCP with 100% uptime, enabling fully remote operations",
+        "CI/CD, Jenkins, Docker, Linux and networking",
         "Checks everything is up roughly hourly, evenings and weekends included",
-        "Has redeployed at 2am after a memory leak and taken heap dumps to find the cause",
-        "TODO_ROBERT"
+        "IT Systems Administrator for 60+ staff at Harmonia Publishing",
+        "Built and led the support and installation teams at ICE Broadband, a wireless ISP"
       ],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "story": "Robert is first responder for the systems he built. He has redeployed at 2am after a memory leak and taken heap dumps to find out exactly why it happened, so it wouldn't happen again.",
+      "tools": ["AWS", "GCP", "Docker", "Jenkins", "Linux", "Networking"]
     },
     {
       "id": "security",
       "title": "Cybersecurity",
       "pitch": "Guards the perimeter. Suspicious traffic does not get a second chance.",
       "skills": [
-        "Blocks suspicious traffic out of hours when it shows up",
-        "TODO_ROBERT",
-        "TODO_ROBERT"
+        "Leads security, data protection and cyber security practice at Topflight Travel Group",
+        "Data Protection Officer, responsible for GDPR compliance",
+        "Incident readiness and ISO 27001-aligned controls",
+        "Blocks suspicious traffic out of hours when it shows up"
       ],
-      "story": "TODO_ROBERT",
-      "tools": ["TODO_ROBERT"]
+      "story": "Security is part of Robert's day job, not a side project. He is the Data Protection Officer, runs ISO 27001-aligned controls, and keeps watch out of hours.",
+      "tools": ["GDPR", "ISO 27001", "Incident response", "AWS", "GCP"]
     }
   ]
 }

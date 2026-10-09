@@ -1,0 +1,129 @@
+{
+  "person": {
+    "name": "Robert Gray",
+    "role": "CTO at Topflight",
+    "summary": "Trained in music and sound engineering. Started in tech support, taught himself web development, and worked his way from systems engineer to CTO.",
+    "education": [
+      "BSc in Computing, completed in one year, first class honours",
+      "Masters in Leadership, Innovation and Technology, first class honours"
+    ]
+  },
+  "agents": [
+    {
+      "id": "ceo",
+      "title": "CEO",
+      "pitch": "Sets the direction and keeps the whole factory pointed at it.",
+      "skills": [
+        "Oversight across technology, operations and commercial decisions at Topflight",
+        "Masters in Leadership, Innovation and Technology, first class honours",
+        "TODO_ROBERT",
+        "TODO_ROBERT"
+      ],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "cto",
+      "title": "CTO",
+      "pitch": "Runs the control tower. Builds, fixes and decides what gets built.",
+      "skills": [
+        "CTO at Topflight, an Irish tour operator",
+        "Oversight across technology, operations and commercial decisions",
+        "Promoted from systems engineer to technical project manager to CTO at Directski.com",
+        "BSc in Computing in one year, first class honours",
+        "TODO_ROBERT"
+      ],
+      "story": "Trained in music and sound engineering, then took a job in tech support at a friend's wireless ISP startup and was running the team within a year. Taught himself web development, joined Directski.com as a systems engineer, and kept getting promoted until he was the CTO.",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "pm",
+      "title": "Project Manager",
+      "pitch": "Walks the line with the board. Chases blockers before they become problems.",
+      "skills": [
+        "Technical project manager at Directski.com",
+        "TODO_ROBERT",
+        "TODO_ROBERT"
+      ],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "design",
+      "title": "Product Designer",
+      "pitch": "Turns rough ideas into something people can actually use.",
+      "skills": ["TODO_ROBERT", "TODO_ROBERT", "TODO_ROBERT"],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "backend",
+      "title": "Backend Engineer",
+      "pitch": "Down in the machine room, shaping raw data into things that work.",
+      "skills": [
+        "Systems engineer at Directski.com, working in Perl and Java",
+        "TODO_ROBERT",
+        "TODO_ROBERT"
+      ],
+      "story": "TODO_ROBERT",
+      "tools": ["Perl", "Java", "TODO_ROBERT"]
+    },
+    {
+      "id": "frontend",
+      "title": "Frontend Engineer",
+      "pitch": "Builds the part people see and makes it feel right.",
+      "skills": ["Self taught web developer", "TODO_ROBERT", "TODO_ROBERT"],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "fullstack",
+      "title": "Full Stack Engineer",
+      "pitch": "Runs between both ends of the stack carrying whatever is needed.",
+      "skills": [
+        "Went from self taught web developer to systems engineer",
+        "TODO_ROBERT",
+        "TODO_ROBERT"
+      ],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "qa",
+      "title": "QA and Test Engineer",
+      "pitch": "Will not let an unexplained error go. Not even one odd log line.",
+      "skills": [
+        "Spots patterns and anomalies other people scroll past",
+        "Skeptical and diligent by nature",
+        "TODO_ROBERT"
+      ],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "devops",
+      "title": "Systems, DevOps and IT",
+      "pitch": "First responder for the systems he built. Yes, even at 2am.",
+      "skills": [
+        "Started in tech support at a wireless ISP startup and was running the team within a year",
+        "Checks everything is up roughly hourly, evenings and weekends included",
+        "Has redeployed at 2am after a memory leak and taken heap dumps to find the cause",
+        "TODO_ROBERT"
+      ],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    },
+    {
+      "id": "security",
+      "title": "Cybersecurity",
+      "pitch": "Guards the perimeter. Suspicious traffic does not get a second chance.",
+      "skills": [
+        "Blocks suspicious traffic out of hours when it shows up",
+        "TODO_ROBERT",
+        "TODO_ROBERT"
+      ],
+      "story": "TODO_ROBERT",
+      "tools": ["TODO_ROBERT"]
+    }
+  ]
+}

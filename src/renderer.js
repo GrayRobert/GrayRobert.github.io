@@ -129,6 +129,13 @@ export function createRenderer(stage, grid) {
     paint,
     resize,
     get cell() { return { w: cw, h: chH }; },
+    // Grid cell under a point on screen, or null outside the canvas.
+    cellAt(clientX, clientY) {
+      const r = main.getBoundingClientRect();
+      const cx = Math.floor(((clientX - r.left) / r.width) * grid.cols);
+      const cy = Math.floor(((clientY - r.top) / r.height) * grid.rows);
+      return cx < 0 || cy < 0 || cx >= grid.cols || cy >= grid.rows ? null : { x: cx, y: cy };
+    },
     get atlasSize() { return slots.size; },
     setGlow(on) {
       glowOn = on;

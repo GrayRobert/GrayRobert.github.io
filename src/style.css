@@ -72,6 +72,98 @@ body {
   78% { background-color: rgba(0, 0, 0, 0); }
 }
 
+/* Skill card: a terminal panel that powers on like an old CRT. */
+.card {
+  --line: #33ff66;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 0 20px 20px;
+  background: #0b0f1a;
+  color: #b9f5c8;
+  border: 3px double var(--line);
+  box-shadow: 0 0 24px rgba(51, 255, 102, 0.25), inset 0 0 40px rgba(51, 255, 102, 0.05);
+  font: 14px/1.55 'JetBrains Mono', ui-monospace, monospace;
+}
+.card[open] {
+  animation: card-on 0.28s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.card::backdrop {
+  background: rgba(5, 8, 14, 0.7);
+}
+@keyframes card-on {
+  0% { transform: scale(1, 0.02); filter: brightness(3); }
+  60% { transform: scale(1, 1.03); }
+  100% { transform: scale(1, 1); filter: brightness(1); }
+}
+.card-bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 -20px 4px;
+  padding: 12px 20px 8px;
+  background: #0b0f1a;
+  border-bottom: 1px solid #1f9e45;
+}
+.card h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--line);
+  text-shadow: 0 0 8px rgba(51, 255, 102, 0.6);
+}
+.card h3 {
+  margin: 18px 0 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #8fa39b;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.card-pitch {
+  color: #ffb000;
+  text-shadow: 0 0 8px rgba(255, 176, 0, 0.35);
+}
+.card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.card li {
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+.card li::before {
+  content: '▸ ';
+  color: var(--line);
+}
+.card-tools span {
+  display: inline-block;
+  margin: 0 8px 6px 0;
+  padding: 0 6px;
+  border: 1px solid #23798c;
+  color: #4de1ff;
+}
+.card .todo {
+  color: #8a5f00;
+  font-style: italic;
+}
+.card-close {
+  font: inherit;
+  color: #8fa39b;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 4px;
+}
+.card-close:hover,
+.card-close:focus-visible {
+  color: #eafff0;
+  outline: 1px solid #1f9e45;
+}
+
 #hud {
   position: fixed;
   left: 8px;
@@ -84,4 +176,5 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .crt::after { animation: none; }
+  .card[open] { animation: none; }
 }

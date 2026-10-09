@@ -44,6 +44,8 @@ export function createGrid(cols = COLS, rows = ROWS) {
   const ch = new Uint16Array(cols * rows);
   const fg = new Uint8Array(cols * rows);
   const cam = { x: 0, y: 0 };
+  // When set, every draw uses this colour instead. Used to draw things unlit or highlighted.
+  const paint = { override: 0 };
 
   function put(x, y, code, col) {
     x = Math.round(x - cam.x);
@@ -51,11 +53,19 @@ export function createGrid(cols = COLS, rows = ROWS) {
     if (x < 0 || y < 0 || x >= cols || y >= rows) return;
     const i = y * cols + x;
     ch[i] = code;
-    fg[i] = col;
+    fg[i] = paint.override || col;
   }
 
   return {
     cols, rows, ch, fg, cam,
+
+    // Runs draw() with every colour replaced by col (0 means no change).
+    tinted(col, draw) {
+      const prev = paint.override;
+      paint.override = col || prev;
+      draw();
+      paint.override = prev;
+    },
 
     clear() {
       ch.fill(0);
@@ -100,6 +110,17 @@ export function createGrid(cols = COLS, rows = ROWS) {
 
     // A single braille dot at sub-cell resolution (2 x 4 dots per cell).
     // Dots in the same cell merge, so particles move smoothly while staying pure text.
+    // A scanner beam: recolours whatever is already in the cell, or draws c if it is empty.
+    // That way a beam sweeps across text without erasing it.
+    scan(x, y, c, col) {
+      x = Math.round(x - cam.x);
+      y = Math.round(y - cam.y);
+      if (x < 0 || y < 0 || x >= cols || y >= rows) return;
+      const i = y * cols + x;
+      if (ch[i] === 0) ch[i] = c.charCodeAt(0);
+      fg[i] = paint.override || col;
+    },
+
     dot(px, py, col) {
       const sx = Math.floor(px * 2);
       const sy = Math.floor(py * 4);
@@ -111,7 +132,7 @@ export function createGrid(cols = COLS, rows = ROWS) {
       const cur = ch[i];
       if (cur !== 0 && !(cur >= BRAILLE && cur < BRAILLE + 256)) return; // particles pass behind real glyphs
       ch[i] = cur ? cur | bit : BRAILLE | bit;
-      fg[i] = col;
+      fg[i] = paint.override || col;
     },
   };
 }

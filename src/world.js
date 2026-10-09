@@ -1,104 +1,116 @@
-// Phase 0 world: one conveyor line, a welder, a QA arch, background machinery,
-// steam and sparks, and the CTO robot patrolling the floor.
+// The factory floor: layout, the power-on sequence, levers, conveyor, stations,
+// background machinery and particles. The crew lives in crew.js.
 
 import { C } from './grid.js';
 import { bigText, bigTextWidth } from './bigtext.js';
-import { makeRobot, HEIGHT as ROBOT_H } from './robots.js';
+import { createCrew, hash } from './crew.js';
 
 export const FLOOR_Y = 50;
-const BELT_Y = 35; // belt surface row, packages sit on the three rows above. Crew walks underneath.
+const BELT_Y = 35; // belt surface. Packages ride on the 3 rows above, the crew walks underneath.
 const BELT_X0 = 3;
 const BELT_X1 = 176;
 const SPEED = 7; // cells per second
-const WELDER_X = 74;
-const QA_X0 = 114;
-const QA_X1 = 132;
+const SEC_X0 = 16; // security scanner at the belt entrance
+const SEC_X1 = 26;
+const WELDER_X = 104;
+const QA_X0 = 117;
+const QA_X1 = 133;
 
+// The product changes as it passes each station.
 const STAGES = [
-  { label: '{ idea }', col: C.amber },
-  { label: '</> code', col: C.green },
-  { label: '✓ tested', col: C.cyan },
+  { label: '{ idea }', col: C.amber, at: 0 },
+  { label: '≡ spec ≡', col: C.steel, at: 58 }, // planned under the PM
+  { label: '[ wire ]', col: C.cyan, at: 90 }, // sketched under the designer
+  { label: '</> code', col: C.green, at: WELDER_X + 2 }, // built at the welder
+  { label: '✓ tested', col: C.cyan, at: QA_X1 - 4 }, // passed QA
 ];
+const PKG_W = 12;
 
-const QUIPS = [
-  { text: 'all green.', mouth: 'smile', mood: 'happy' },
-  { text: 'hmm. one odd log line.', mouth: 'worry' },
-  { text: 'ship it.', mouth: 'smile', mood: 'happy' },
-  { text: 'who touched prod?', mouth: 'o' },
-  { text: 'keep it simple.', mouth: 'smile' },
-  { text: 'checking. again.', mouth: 'flat' },
-];
+// Seconds after the lever is pulled that each part of the factory lights up.
+const WAKE = { panel: 0, sign: 0.5, offices: 0.9, catwalk: 1.2, tower: 1.5, line: 1.9, ship: 2.6, floor: 2.8 };
 
 const LOG_LINES = [
-  ['build 4521 .......... ok', C.greenDim], ['tests 812/812 ....... pass', C.greenDim],
-  ['deploy eu-west ...... ok', C.greenDim], ['p95 latency 182ms', C.greenDim],
-  ['WARN heap 81% api-2', C.amber], ['gc pause 40ms', C.greenDim],
-  ['cert renew .......... ok', C.greenDim], ['backup nightly ...... ok', C.greenDim],
-  ['cache hit 97.2%', C.greenDim], ['scan deps ........... clean', C.cyanDim],
-  ['blocked 203.0.113.7', C.red], ['queue depth 3', C.greenDim],
+  ['build .... ok', C.greenDim], ['tests .. pass', C.greenDim], ['deploy ... ok', C.greenDim],
+  ['WARN heap 81%', C.amber], ['cache ... 97%', C.greenDim], ['blocked 1 ip', C.red],
+  ['backup ... ok', C.greenDim], ['scan .. clean', C.cyanDim], ['p95 ... 182ms', C.greenDim],
 ];
 
-export function createWorld(seed = 7) {
+export function createWorld({ seed = 7, audio = null } = {}) {
   const rnd = mulberry32(seed);
-  const cto = makeRobot({ label: 'CTO', head: 'double', antenna: 'tip', accent: C.amber });
+  const crew = createCrew(rnd, audio);
+
+  const power = { on: false, t0: 0 };
+  // Lever positions: 0 up, 1 down. Each one is a little damped spring so it overshoots and settles.
+  const soundOn = audio && !audio.muted ? 1 : 0;
+  const levers = { power: { v: 0, vel: 0 }, sound: { v: soundOn, vel: 0 } };
+  const leverTarget = { power: 0, sound: soundOn };
+  let hover = null;
+  let hits = [];
 
   let beltDist = 0;
   let beltStep = 0;
-  let nextSpawn = 4;
+  let nextSpawn = 2;
   let deployed = 0;
   let logOffset = 0;
   let logTimer = 0;
   let steamTimer = 0;
   let welding = false;
-  let weldDrop = 0; // 0 torch raised, 1 torch down
+  let weldDrop = 0;
   let shipFlash = 0;
   const packages = [];
   const steam = [];
   const sparks = [];
+  let now = 0;
 
-  const bot = {
-    x: 30, from: 30, to: 30, t0: 0, dur: 0, state: 'look', until: 1.2, quip: null, quipT: 0, dir: 1,
-  };
+  // 0 before its moment, flickering for a beat, then on for good.
+  function awakeAt(delay) {
+    if (!power.on) return false;
+    const e = now - power.t0 - delay;
+    if (e < 0) return false;
+    if (e > 0.45) return true;
+    return hash(Math.floor(now * 40) + Math.floor(delay * 100)) % 3 !== 0;
+  }
 
   function update(t, dt) {
-    // Belt moves in whole cell steps so packages and cleats stay locked together.
-    beltDist += SPEED * dt;
+    now = t;
+    for (const k of ['power', 'sound']) spring(levers[k], leverTarget[k], dt);
+
+    const lineOn = power.on && t - power.t0 > WAKE.line;
+    const ramp = lineOn ? Math.min(1, (t - power.t0 - WAKE.line) / 1.5) : 0;
+    beltDist += SPEED * ramp * ramp * dt;
     beltStep = Math.floor(beltDist);
 
-    if (beltStep >= nextSpawn) {
-      packages.push({ start: beltStep, stage: 0 });
-      nextSpawn = beltStep + 24 + Math.floor(rnd() * 10);
+    if (lineOn && beltStep >= nextSpawn) {
+      packages.push({ start: beltStep, stage: 0, flash: 0 });
+      nextSpawn = beltStep + 22 + Math.floor(rnd() * 10);
     }
 
     welding = false;
     for (let i = packages.length - 1; i >= 0; i--) {
       const p = packages[i];
       const x = pkgX(p);
-      const w = pkgW(p);
-      const mid = x + w / 2;
-      if (p.stage === 0 && x <= WELDER_X && x + w > WELDER_X) welding = true;
-      if (p.stage === 0 && mid > WELDER_X + 2) p.stage = 1;
-      if (p.stage === 1 && mid > (QA_X0 + QA_X1) / 2 + 3) p.stage = 2;
+      const mid = x + PKG_W / 2;
+      p.flash = Math.max(0, p.flash - dt);
+      const next = STAGES[p.stage + 1];
+      if (next?.at === WELDER_X + 2 && x <= WELDER_X && x + PKG_W > WELDER_X) welding = true;
+      if (next && mid > next.at) { p.stage++; p.flash = 0.25; }
       if (x > BELT_X1 - 8) {
         packages.splice(i, 1);
         deployed++;
         shipFlash = 0.6;
+        audio?.ship();
       }
     }
     shipFlash = Math.max(0, shipFlash - dt);
 
-    // Torch drops when there is work under it, with a little ease.
     weldDrop += ((welding ? 1 : 0) - weldDrop) * Math.min(1, dt * 10);
+    audio?.weld(welding && weldDrop > 0.8 ? 0.4 + rnd() * 0.6 : 0);
     if (welding && weldDrop > 0.8) {
       const n = rnd() < 0.5 ? 2 : 3;
       for (let i = 0; i < n; i++) {
-        sparks.push({
-          x: WELDER_X + 0.5, y: BELT_Y - 3.2,
-          vx: (rnd() - 0.5) * 28, vy: -6 - rnd() * 14, age: 0, life: 0.35 + rnd() * 0.5,
-        });
+        sparks.push({ x: WELDER_X + 0.5, y: BELT_Y - 3.2, vx: (rnd() - 0.5) * 28, vy: -6 - rnd() * 14, age: 0, life: 0.35 + rnd() * 0.5 });
       }
     }
-
     for (let i = sparks.length - 1; i >= 0; i--) {
       const s = sparks[i];
       s.age += dt;
@@ -109,94 +121,67 @@ export function createWorld(seed = 7) {
       if (s.age > s.life) sparks.splice(i, 1);
     }
 
-    // Steam vents puff in bursts.
+    // The chimney above the ship dock breathes steam once the line is running.
     steamTimer -= dt;
-    if (steamTimer <= 0) {
-      steamTimer = 0.06;
-      for (const vx of [24, 156]) {
-        if (Math.sin(t * 0.9 + vx) > 0.2) {
-          steam.push({ x: vx + rnd() * 2, y: 30, vx: (rnd() - 0.5) * 2.5, vy: -2 - rnd() * 2, age: 0, life: 3 + rnd() * 2.5, seed: rnd() * 6 });
-        }
+    if (steamTimer <= 0 && lineOn) {
+      steamTimer = 0.05;
+      if (Math.sin(t * 0.8) > -0.3) {
+        steam.push({ x: 171.5 + rnd() * 2, y: 15, vx: (rnd() - 0.5) * 2, vy: -1.6 - rnd() * 1.6, age: 0, life: 3 + rnd() * 2.5, seed: rnd() * 6 });
       }
     }
     for (let i = steam.length - 1; i >= 0; i--) {
       const s = steam[i];
       s.age += dt;
-      s.x += (s.vx + Math.sin(t * 1.3 + s.seed) * 1.2) * dt;
+      s.x += (s.vx + Math.sin(t * 1.3 + s.seed) * 1.4 - 0.6) * dt;
       s.y += s.vy * dt;
-      s.vy *= 1 - dt * 0.3;
-      if (s.age > s.life) steam.splice(i, 1);
+      s.vy *= 1 - dt * 0.25;
+      if (s.age > s.life || s.y < 3) steam.splice(i, 1);
     }
 
     logTimer += dt;
-    if (logTimer > 0.7) { logTimer = 0; logOffset++; }
+    if (logTimer > 0.8) { logTimer = 0; logOffset++; }
 
-    updateBot(t);
-  }
-
-  function updateBot(t) {
-    const b = bot;
-    if (b.state === 'walk') {
-      const p = Math.min(1, (t - b.t0) / b.dur);
-      b.x = b.from + (b.to - b.from) * easeInOutSine(p);
-      if (p >= 1) {
-        b.state = 'look';
-        b.until = t + 2.8;
-        b.quip = QUIPS[Math.floor(rnd() * QUIPS.length)];
-        b.quipT = t + 0.35; // a beat of anticipation before speaking
-      }
-    } else if (t > b.until) {
-      let to;
-      do to = 14 + Math.floor(rnd() * 130); while (Math.abs(to - b.x) < 24);
-      b.from = b.x;
-      b.to = to;
-      b.dir = Math.sign(to - b.x);
-      b.t0 = t;
-      b.dur = Math.abs(to - b.x) / 11 + 0.8;
-      b.state = 'walk';
-      b.quip = null;
-    }
+    crew.update(t, awakeAt);
   }
 
   function draw(g, t) {
+    now = t;
+    hits = [];
+    const dark = (delay, fn) => g.tinted(awakeAt(delay) ? 0 : C.greyDark, fn);
+
     drawBackdrop(g);
+    dark(WAKE.sign, () => drawSign(g, t));
+    dark(WAKE.offices, () => drawOffice(g, t));
+    dark(WAKE.tower, () => drawTower(g, t));
+    drawChimney(g);
     for (const s of steam) {
       const k = s.age / s.life;
       g.put(s.x, s.y, k < 0.12 ? '▓' : k < 0.35 ? '▒' : k < 0.75 ? '░' : '·', k < 0.4 ? C.grey : C.greyDark);
     }
-    drawSign(g, t);
-    drawMonitors(g, t);
-    drawCatwalk(g);
-    drawBelt(g);
-    for (const p of packages) drawPackage(g, p, t);
-    drawWelder(g, t);
-    drawQA(g, t);
-    drawHousings(g, t);
+    dark(WAKE.line, () => {
+      drawBelt(g);
+      for (const p of packages) drawPackage(g, p, t);
+      drawSecurityGate(g, t);
+      drawWelder(g, t);
+      drawQA(g, t);
+    });
     for (const s of sparks) {
       const k = s.age / s.life;
       g.dot(s.x, s.y, k < 0.2 ? C.white : k < 0.6 ? C.amber : C.amberDim);
     }
-    drawBot(g, t);
-    drawFloor(g, t);
+    crew.draw(g, t, 'upper', { awakeAt, hover, hits });
+    dark(WAKE.catwalk, () => drawCatwalkRail(g));
+    dark(WAKE.line, () => drawCabinets(g, t));
+    crew.draw(g, t, 'floor', { awakeAt, hover, hits });
+    dark(WAKE.floor, () => drawFloor(g, t));
+    drawPanel(g, t);
+    if (!power.on) drawPowerHint(g, t);
   }
 
   function drawBackdrop(g) {
-    // Roof truss
     g.text(0, 0, '═'.repeat(180), C.greyDark);
     for (let x = 0; x < 180; x++) g.put(x, 1, x % 2 ? '╱' : '╲', C.greyDark);
     g.text(0, 2, '═'.repeat(180), C.greyDark);
-
-    // Pipes along the back wall with valves and vents
-    g.text(0, 31, '═'.repeat(42), C.greyDark);
-    g.text(138, 31, '═'.repeat(42), C.greyDark);
-    for (const x of [10, 24, 156, 170]) {
-      g.put(x, 31, '╦', C.greyDark);
-      for (let y = 32; y < FLOOR_Y; y++) g.put(x, y, '║', C.greyDark);
-    }
-    g.put(24, 31, '╬', C.grey);
-    g.put(156, 31, '╬', C.grey);
-
-    // Wall rivets give the dark something to sit on
     for (let y = 5; y < 30; y += 6) {
       for (let x = 3 + (y % 12 ? 0 : 6); x < 178; x += 12) g.put(x, y, '·', C.greyDark);
     }
@@ -208,73 +193,88 @@ export function createWorld(seed = 7) {
     const x0 = Math.floor((180 - w) / 2);
     const bx = x0 - 6;
     const bw = w + 12;
-    const by = 5;
-    const bh = 11;
+    const by = 4;
+    const bh = 7;
+    g.put(bx + 4, 3, '│', C.greyDark);
+    g.put(bx + bw - 5, 3, '│', C.greyDark);
 
-    // Hangers from the truss
-    for (let y = 3; y < by; y++) {
-      g.put(bx + 4, y, '│', C.greyDark);
-      g.put(bx + bw - 5, y, '│', C.greyDark);
-    }
-
-    // Marquee bulbs chase around the frame
     let i = 0;
     const step = Math.floor(t * 9);
-    const bulb = (x, y) => {
-      g.put(x, y, '•', (i++ + step) % 3 === 0 ? C.amber : C.amberDim);
-    };
+    const bulb = (x, y) => g.put(x, y, '•', (i++ + step) % 3 === 0 ? C.amber : C.amberDim);
     for (let x = bx; x < bx + bw; x += 2) bulb(x, by);
     for (let y = by + 1; y < by + bh - 1; y++) bulb(bx + bw - 1, y);
     for (let x = bx + bw - 1; x >= bx; x -= 2) bulb(x, by + bh - 1);
     for (let y = by + bh - 2; y > by; y--) bulb(bx, y);
 
-    // Neon letters, with the odd letter flickering like an old tube
+    // Letters light up one at a time at power on, then the odd one flickers like an old tube.
+    const since = t - power.t0 - WAKE.sign;
     const flick = Math.floor(t * 20);
     const bad = hash(Math.floor(t * 0.5)) % title.length;
-    bigText(g, x0, by + 3, title, C.green, {
-      colorAt: (k) => (k === bad && hash(flick) % 7 === 0 ? C.greenDark : C.green),
+    bigText(g, x0, by + 2, title, C.green, {
+      colorAt: (k) => {
+        if (since < k * 0.06) return C.greenDark;
+        return k === bad && hash(flick) % 7 === 0 ? C.greenDark : C.green;
+      },
     });
-    const sub = 'CTO   ·   TOPFLIGHT   ·   THE DARK FACTORY';
-    g.text(Math.floor((180 - sub.length) / 2), by + 7, sub, C.amber);
   }
 
-  function drawMonitors(g, t) {
-    // Left: scrolling ops log
-    const lx = 4, ly = 17, lw = 38, lh = 10;
-    g.box(lx, ly, lw, lh, C.grey, 'round');
-    g.fill(lx + 1, ly + 1, lw - 2, lh - 2, ' ', 0);
-    g.text(lx + 2, ly, ' ops.log ', C.steel);
-    for (let i = 0; i < lh - 3; i++) {
+  // The boardroom, upper left, where the CEO keeps an eye on the numbers.
+  function drawOffice(g, t) {
+    const x0 = 15, y0 = 12, w = 31, h = 15;
+    g.box(x0, y0, w, h, C.grey, 'double');
+    g.fill(x0 + 1, y0 + 1, w - 2, h - 2, ' ', 0);
+    g.text(x0 + 2, y0, ' BOARDROOM ', C.steel);
+    // Glass glints
+    g.text(x0 + 3, y0 + 2, '╱', C.cyanDim);
+    g.text(x0 + 4, y0 + 2, '╱', C.greyDark);
+    // Revenue ticker on the desk screen: always trending the right way
+    const sx = x0 + 19, sy = y0 + 4;
+    g.box(sx, sy, 11, 6, C.grey, 'round');
+    g.text(sx + 2, sy, ' rev ', C.amberDim);
+    for (let i = 0; i < 9; i++) {
+      const v = Math.min(7, Math.max(0, Math.floor(i * 0.7 + 1 + Math.sin(t * 1.5 + i) * 1.2)));
+      g.put(sx + 1 + i, sy + 3, '▁▂▃▄▅▆▇█'[v], C.amber);
+    }
+    g.put(sx + 9, sy + 2, '▲', Math.floor(t * 2) % 2 ? C.green : C.greenDim);
+    g.text(sx, sy + 6, '───┴─┴───', C.grey);
+  }
+
+  // The control tower, upper right. The CTO's screens show the whole line.
+  function drawTower(g, t) {
+    const x0 = 135, y0 = 12, w = 31, h = 15;
+    g.box(x0, y0, w, h, C.grey, 'heavy');
+    g.fill(x0 + 1, y0 + 1, w - 2, h - 2, ' ', 0);
+    g.text(x0 + 2, y0, ' CONTROL ', C.steel);
+    const sx = x0 + 15;
+    g.box(sx, y0 + 1, 15, 7, C.grey, 'round');
+    for (let i = 0; i < 5; i++) {
       const [text, col] = LOG_LINES[(logOffset + i) % LOG_LINES.length];
-      g.text(lx + 2, ly + 1 + i, text, col);
+      g.text(sx + 1, y0 + 2 + i, text.slice(0, 13), col);
     }
-    if (Math.floor(t * 2) % 2) g.put(lx + 2, ly + lh - 2, '▌', C.green);
-    g.text(lx + 3, ly + lh - 2, '_', C.greenDim);
-
-    // Right: line status and deployed counter
-    const rx = 138, ry = 17, rw = 38, rh = 10;
-    g.box(rx, ry, rw, rh, C.grey, 'round');
-    g.text(rx + 2, ry, ' line.status ', C.steel);
-    const stations = [['INTAKE', 'ok'], ['BUILD', welding ? 'busy' : 'ok'], ['QA', 'ok'], ['SHIP', 'ok']];
-    stations.forEach(([name, st], i) => {
-      g.text(rx + 2, ry + 2 + i, name.padEnd(8, '.'), C.greenDim);
-      g.put(rx + 11, ry + 2 + i, '●', st === 'busy' ? (Math.floor(t * 8) % 2 ? C.amber : C.amberDim) : C.green);
-      g.text(rx + 13, ry + 2 + i, st, st === 'busy' ? C.amber : C.greenDim);
+    g.box(sx, y0 + 8, 15, 6, C.grey, 'round');
+    const stations = [['SEC', true], ['PLAN', true], ['BUILD', !welding], ['QA', true]];
+    stations.forEach(([name, ok], i) => {
+      const yy = y0 + 9 + (i % 2) * 2;
+      const xx = sx + 1 + Math.floor(i / 2) * 7;
+      g.put(xx, yy, '●', ok ? C.green : Math.floor(t * 8) % 2 ? C.amber : C.amberDim);
+      g.text(xx + 1, yy, name, C.greenDim);
     });
-    g.text(rx + 22, ry + 2, 'DEPLOYED', C.cyanDim);
-    bigText(g, rx + 2, ry + 6, String(deployed).padStart(6, '0'), shipFlash > 0 ? C.white : C.cyanDim);
-    // Sparkline of belt load
-    for (let i = 0; i < 12; i++) {
-      const v = (Math.sin(t * 0.7 + i * 0.6) + Math.sin(t * 1.9 + i)) * 0.25 + 0.5;
-      g.put(rx + 22 + i, ry + 3, '▁▂▃▄▅▆▇█'[Math.max(0, Math.min(7, Math.floor(v * 8)))], C.cyanDim);
-    }
+    g.text(sx + 1, y0 + 12, 'SHIP ' + String(deployed).padStart(6, '0'), shipFlash > 0 ? C.white : C.cyan);
   }
 
-  function drawCatwalk(g) {
-    const x0 = 46, x1 = 134, y = 21;
+  function drawChimney(g) {
+    g.tinted(awakeAt(WAKE.ship) ? 0 : C.greyDark, () => {
+      g.text(169, 16, '╔════╗', C.grey);
+      for (let y = 17; y < 27; y++) g.text(169, y, '║````║', C.grey);
+      g.text(170, 20, '≋≋≋≋', C.greyDark);
+    });
+  }
+
+  function drawCatwalkRail(g) {
+    const x0 = 47, x1 = 133, y = 21;
     for (let x = x0; x <= x1; x++) {
-      g.put(x, y, (x - x0) % 4 === 0 ? '┬' : '─', C.greyDark);
-      if ((x - x0) % 4 === 0) g.put(x, y + 1, '│', C.greyDark);
+      g.put(x, y, (x - x0) % 4 === 0 ? '┬' : '─', C.grey);
+      if ((x - x0) % 4 === 0) g.put(x, y + 1, '│', C.grey);
       g.put(x, y + 2, (x - x0) % 4 === 0 ? '╧' : '═', C.grey);
     }
     for (let yy = 3; yy < y; yy++) {
@@ -297,7 +297,6 @@ export function createWorld(seed = 7) {
     g.text(BELT_X1, BELT_Y, '╮', C.grey);
     g.text(BELT_X1, BELT_Y + 1, '│', C.grey);
     g.text(BELT_X1, BELT_Y + 2, '╯', C.grey);
-    // Tall legs with braces. The crew floor runs underneath the line.
     for (let x = BELT_X0 + 20; x < BELT_X1 - 14; x += 22) {
       for (let y = BELT_Y + 3; y < FLOOR_Y; y++) g.put(x, y, '║', C.greyDark);
       g.put(x - 1, BELT_Y + 3, '╱', C.greyDark);
@@ -306,18 +305,32 @@ export function createWorld(seed = 7) {
   }
 
   function pkgX(p) { return BELT_X0 + (beltStep - p.start); }
-  function pkgW(p) { return STAGES[p.stage].label.length + 4; }
 
   function drawPackage(g, p, t) {
     const { label, col } = STAGES[p.stage];
     const x = pkgX(p);
-    const w = label.length + 4;
     const y = BELT_Y - 3;
-    const under = p.stage === 0 && welding && x <= WELDER_X && x + w > WELDER_X;
-    const c = under && hash(Math.floor(t * 30) + p.start) % 3 === 0 ? C.white : col;
-    g.text(x, y, '╭' + '─'.repeat(w - 2) + '╮', c);
+    const under = welding && x <= WELDER_X && x + PKG_W > WELDER_X;
+    const c = p.flash > 0 || (under && hash(Math.floor(t * 30) + p.start) % 3 === 0) ? C.white : col;
+    g.text(x, y, '╭' + '─'.repeat(PKG_W - 2) + '╮', c);
     g.text(x, y + 1, '│`' + label.replaceAll(' ', '`') + '`│', c);
-    g.text(x, y + 2, '╰' + '─'.repeat(w - 2) + '╯', c);
+    g.text(x, y + 2, '╰' + '─'.repeat(PKG_W - 2) + '╯', c);
+  }
+
+  function drawSecurityGate(g, t) {
+    const top = BELT_Y - 7;
+    g.text(SEC_X0, top, '┏' + '━'.repeat(SEC_X1 - SEC_X0 - 1) + '┓', C.grey);
+    g.text(SEC_X0 + 3, top, ' SEC ', C.red);
+    for (let y = top + 1; y < BELT_Y; y++) {
+      g.put(SEC_X0, y, '┃', C.grey);
+      g.put(SEC_X1, y, '┃', C.grey);
+    }
+    const inside = packages.some((p) => pkgX(p) + PKG_W > SEC_X0 && pkgX(p) < SEC_X1);
+    if (inside) {
+      const k = (Math.sin(t * 9) + 1) / 2;
+      const by = top + 1 + Math.round(k * 5);
+      for (let x = SEC_X0 + 1; x < SEC_X1; x++) g.scan(x, by, '┄', C.red);
+    }
   }
 
   function drawWelder(g, t) {
@@ -328,32 +341,29 @@ export function createWorld(seed = 7) {
     g.put(WELDER_X, tipY - 2, '▓', welding ? C.amber : C.amberDim);
     g.text(WELDER_X - 1, tipY - 1, '╚╤╝', C.steel);
     g.put(WELDER_X, tipY, '▼', C.amber);
-    if (welding && weldDrop > 0.8) {
-      g.put(WELDER_X, tipY + 1, Math.floor(t * 24) % 2 ? '*' : '✶', C.white);
-    }
+    if (welding && weldDrop > 0.8) g.put(WELDER_X, tipY + 1, Math.floor(t * 24) % 2 ? '*' : '✶', C.white);
     g.text(WELDER_X - 4, 24, '╘═══╧═══╛', C.grey);
   }
 
   function drawQA(g, t) {
-    g.text(QA_X0, BELT_Y - 8, '╔' + '═'.repeat(QA_X1 - QA_X0 - 1) + '╗', C.grey);
-    g.text(QA_X0 + 6, BELT_Y - 8, ' QA ', C.cyan);
-    for (let y = BELT_Y - 7; y < BELT_Y; y++) {
+    const top = BELT_Y - 8;
+    g.text(QA_X0, top, '╔' + '═'.repeat(QA_X1 - QA_X0 - 1) + '╗', C.grey);
+    g.text(QA_X0 + 6, top, ' QA ', C.cyan);
+    for (let y = top + 1; y < BELT_Y; y++) {
       g.put(QA_X0, y, '║', C.grey);
       g.put(QA_X1, y, '║', C.grey);
     }
-    const inside = packages.some((p) => p.stage >= 1 && pkgX(p) + pkgW(p) > QA_X0 && pkgX(p) < QA_X1);
-    g.put(QA_X0, BELT_Y - 6, '●', inside ? C.cyan : C.cyanDim);
-    g.put(QA_X1, BELT_Y - 6, '●', inside ? C.cyan : C.cyanDim);
+    const inside = packages.some((p) => p.stage >= 3 && pkgX(p) + PKG_W > QA_X0 && pkgX(p) < QA_X1);
+    g.put(QA_X0, top + 2, '●', inside ? C.cyan : C.cyanDim);
+    g.put(QA_X1, top + 2, '●', inside ? C.cyan : C.cyanDim);
     if (inside) {
       const span = QA_X1 - QA_X0 - 1;
-      const k = (Math.sin(t * 7) + 1) / 2;
-      const bx = QA_X0 + 1 + Math.round(k * (span - 1));
-      for (let y = BELT_Y - 7; y < BELT_Y; y++) g.put(bx, y, '┊', C.cyan);
+      const bx = QA_X0 + 1 + Math.round(((Math.sin(t * 7) + 1) / 2) * (span - 1));
+      for (let y = top + 1; y < BELT_Y; y++) g.scan(bx, y, '┊', C.white);
     }
   }
 
-  function drawHousings(g, t) {
-    // Tall cabinets at each end. Intake hides where ideas appear, ship swallows the finished ones.
+  function drawCabinets(g, t) {
     const top = BELT_Y - 8;
     const h = FLOOR_Y - top;
     for (const [x, name, col] of [[1, 'INTAKE', C.amber], [166, 'SHIP', shipFlash > 0 ? C.white : C.green]]) {
@@ -363,38 +373,59 @@ export function createWorld(seed = 7) {
       g.put(x + 10, top + 2, '▶', name === 'SHIP' ? col : Math.floor(t * 3) % 2 ? C.amber : C.amberDim);
       g.text(x + 1, top + 4, '┄'.repeat(11), C.greyDark);
       for (let y = BELT_Y - 3; y < BELT_Y; y++) g.text(x + 2, y, '▒▒▒▒▒▒▒▒▒', C.greyDark);
-      // Machine detail below the line: a vent grille and two status LEDs
-      for (let y = BELT_Y + 3; y < FLOOR_Y - 3; y += 2) g.text(x + 2, y, '═════════', C.greyDark);
+      for (let y = BELT_Y + 5; y < FLOOR_Y - 3; y += 2) g.text(x + 2, y, '═════════', C.greyDark);
       g.put(x + 2, FLOOR_Y - 2, '●', C.green);
       g.put(x + 4, FLOOR_Y - 2, '●', Math.floor(t * 1.5 + x) % 3 ? C.greenDark : C.green);
     }
+    g.text(168, BELT_Y + 2, 'shipped', C.greenDim);
+    g.text(168, BELT_Y + 3, String(deployed).padStart(6, '0'), shipFlash > 0 ? C.white : C.cyan);
   }
 
-  function drawBot(g, t) {
-    const b = bot;
-    const x = Math.round(b.x);
-    const y = FLOOR_Y - ROBOT_H;
-    let legs = 'stand';
-    let swing = 0;
-    if (b.state === 'walk') {
-      const phase = Math.floor(Math.abs(b.x - b.from) / 1.6) % 4;
-      legs = ['stand', 'stepA', 'stand', 'stepB'][phase];
-      swing = [0, 1, 0, -1][phase];
-    }
-    const blink = hash(Math.floor(t * 0.4)) % 3 === 0 && (t * 0.4) % 1 < 0.06;
-    const speaking = b.quip && t > b.quipT;
-    cto(g, x, y, {
-      legs,
-      look: b.state === 'walk' ? b.dir : 0,
-      blink,
-      mouth: speaking ? b.quip.mouth : 'smile',
-      mood: speaking ? b.quip.mood : undefined,
-      chest: Math.floor(t * 6),
-      tip: Math.floor(t * 2) % 2 === 0,
-      swing,
-      wave: speaking && b.quip.text === 'ship it.',
-    });
-    if (speaking) drawBubble(g, x, y, b.quip.text, Math.floor((t - b.quipT) * 28));
+  // Control panel, upper left: the power lever and the sound lever.
+  function drawPanel(g, t) {
+    const x0 = 1, y0 = 12, w = 13, h = 15;
+    g.box(x0, y0, w, h, power.on ? C.grey : C.greyDark, 'heavy');
+    g.fill(x0 + 1, y0 + 1, w - 2, h - 2, ' ', 0);
+    lever(g, t, 'power', x0 + 3, y0 + 2, 'PWR', power.on ? C.green : C.amber);
+    lever(g, t, 'sound', x0 + 9, y0 + 2, 'SND', levers.sound.v > 0.5 ? C.green : C.red);
+  }
+
+  function lever(g, t, id, x, y, label, lamp) {
+    const travel = 7;
+    const hy = y + Math.round(levers[id].v * travel);
+    const hovered = hover === id;
+    const idle = id === 'power' && !power.on;
+    for (let j = 0; j <= travel; j++) g.put(x, y + j, '║', C.greyDark);
+    // Rod from the pivot below the slot up (or down) to the handle
+    const pivot = y + travel + 1;
+    g.put(x, pivot, '◎', C.steel);
+    for (let yy = hy + 1; yy < pivot; yy++) g.put(x, yy, '┃', C.steel);
+    const pulse = idle && Math.floor(t * 2.5) % 2 === 0;
+    g.text(x - 1, hy, '▐█▌', hovered ? C.white : pulse ? C.amber : idle ? C.amberDim : C.steel);
+    g.text(x - 1, y + travel + 3, label, power.on || id === 'power' ? C.steel : C.greyDark);
+    g.put(x, y + travel + 2, '●', id === 'sound' && !power.on ? C.greyDark : lamp);
+    hits.push({ id, x: x - 2, y: y - 1, w: 5, h: travel + 5 });
+  }
+
+  // Before power on: a callout in the empty band above the belt, with a trail of
+  // marching dots leading back to the lever.
+  function drawPowerHint(g, t) {
+    const line1 = 'pull the PWR lever to start the factory';
+    const line2 = 'or press enter  ·  sound on';
+    const w = line1.length + 6;
+    const x0 = 32;
+    const y0 = 27;
+    g.box(x0, y0, w, 4, C.amberDim, 'round');
+    g.fill(x0 + 1, y0 + 1, w - 2, 2, ' ', 0);
+    g.text(x0 + 3, y0 + 1, line1, C.amber);
+    g.text(x0 + 3 + Math.floor((line1.length - line2.length) / 2), y0 + 2, line2, C.steel);
+
+    const path = [];
+    for (let x = x0 - 1; x > 14; x--) path.push([x, y0 + 1]);
+    for (let y = y0 + 1; y > 19; y--) path.push([14, y]);
+    const head = Math.floor(t * 18);
+    path.forEach(([x, y], i) => g.put(x, y, '·', (i - head) % 6 === 0 ? C.amber : C.amberDim));
+    g.put(14, 19, '◀', Math.floor(t * 2.5) % 2 ? C.amber : C.amberDim);
   }
 
   function drawFloor(g, t) {
@@ -403,8 +434,8 @@ export function createWorld(seed = 7) {
       const hazard = x < 16 || x > 163;
       g.put(x, FLOOR_Y + 1, hazard ? (x % 2 ? '▞' : '▚') : '·', hazard ? C.amberDim : C.greyDark);
     }
-    // Cable trench with data pulses running down the line
     g.text(0, FLOOR_Y + 2, '─'.repeat(180), C.greyDark);
+    if (!power.on) return;
     for (let k = 0; k < 7; k++) {
       const px = Math.floor((t * 26 + k * 27) % 190) - 5;
       g.put(px, FLOOR_Y + 2, '━', C.cyan);
@@ -413,44 +444,53 @@ export function createWorld(seed = 7) {
     }
   }
 
+  function powerOn(t) {
+    if (power.on) return;
+    power.on = true;
+    power.t0 = t;
+    leverTarget.power = 1;
+    audio?.start();
+    audio?.clunk();
+  }
+
   return {
     update,
     draw,
-    // Debug: make the robot stop and say something, so speech can be checked on demand.
-    say(text, t) {
-      const quip = QUIPS.find((q) => q.text === text) ?? { text, mouth: 'smile' };
-      Object.assign(bot, { state: 'look', until: t + 1e9, quip, quipT: t });
+    powerOn,
+    get powered() { return power.on; },
+    // Topmost thing under a cell, or null.
+    hitAt(cx, cy) {
+      for (let i = hits.length - 1; i >= 0; i--) {
+        const h = hits[i];
+        if (cx >= h.x && cx < h.x + h.w && cy >= h.y && cy < h.y + h.h) return h.id;
+      }
+      return null;
     },
+    setHover(id) { hover = id; },
+    // Returns what was clicked: 'power', 'sound', or a crew id.
+    activate(id, t) {
+      if (id === 'power') {
+        powerOn(t);
+      } else if (id === 'sound') {
+        if (!power.on) return id;
+        leverTarget.sound = leverTarget.sound ? 0 : 1;
+        audio?.clunk();
+        audio?.setMuted(!leverTarget.sound);
+      }
+      return id;
+    },
+    say(text, t, id = 'cto') { crew.say(id, text, t); },
     get stats() {
-      return { packages: packages.length, sparks: sparks.length, steam: steam.length, deployed, botX: Math.round(bot.x) };
+      return { packages: packages.length, sparks: sparks.length, steam: steam.length, deployed, powered: power.on };
     },
   };
 }
 
-function drawBubble(g, rx, ry, text, n) {
-  const shown = text.slice(0, Math.max(0, n));
-  const w = text.length + 4;
-  // Beside the head, flipped to the left side near the right edge of the floor.
-  const left = rx + 12 + w > 165;
-  const x = left ? rx - w - 1 : rx + 12;
-  const y = ry + 2;
-  g.text(x, y, '╭' + '─'.repeat(w - 2) + '╮', C.steel);
-  g.text(x, y + 1, '│`' + '`'.repeat(text.length) + '`│', C.steel);
-  g.text(x + 2, y + 1, shown, C.white);
-  g.text(x, y + 2, '╰' + '─'.repeat(w - 2) + '╯', C.steel);
-  g.put(left ? x + w : x - 1, y + 1, left ? '▶' : '◀', C.steel);
-}
-
-function easeInOutSine(p) {
-  return -(Math.cos(Math.PI * p) - 1) / 2;
-}
-
-function hash(n) {
-  n = (n ^ 61) ^ (n >>> 16);
-  n = (n + (n << 3)) | 0;
-  n ^= n >>> 4;
-  n = Math.imul(n, 0x27d4eb2d);
-  return (n ^ (n >>> 15)) >>> 0;
+// Underdamped spring: a heavy handle that slams past its stop and settles back.
+function spring(l, target, dt) {
+  const step = Math.min(dt, 1 / 30);
+  l.vel += ((target - l.v) * 260 - l.vel * 16) * step;
+  l.v += l.vel * step;
 }
 
 function mulberry32(a) {

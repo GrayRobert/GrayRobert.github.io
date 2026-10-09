@@ -26,16 +26,6 @@ for (const vp of viewports) {
     const file = `shots/${name}-${vp.tag}.png`;
     await page.screenshot({ path: file });
     const stats = await page.evaluate(() => ({ ...window.factory.perf, world: window.factory.world.stats, cell: window.factory.renderer.cell }));
-    if (vp.tag === '4k' && stats.world.botX != null) {
-      // Close-up of the robot to check glyph joins at high resolution.
-      const box = await page.evaluate((botX) => {
-        const r = document.querySelector('canvas.main').getBoundingClientRect();
-        const cw = r.width / window.factory.grid.cols;
-        const ch = r.height / window.factory.grid.rows;
-        return { x: r.left + (botX - 6) * cw, y: r.top + 34 * ch, width: 34 * cw, height: 17 * ch };
-      }, stats.world.botX);
-      await page.screenshot({ path: `shots/${name}-robot-4k.png`, clip: box });
-    }
     console.log(file, JSON.stringify(stats, (k, v) => (typeof v === 'number' ? Math.round(v * 100) / 100 : v)));
   }
   await page.close();

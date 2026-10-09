@@ -1,0 +1,142 @@
+// Factory sound, synthesised with WebAudio. No audio files.
+// Browsers only allow sound after a click or key press, so nothing plays until start().
+
+const VOLUME = 0.55;
+const KEY = 'factory.muted';
+
+export function createAudio() {
+  let ctx = null;
+  let master, weldGain, noise;
+  let muted = false;
+  try { muted = localStorage.getItem(KEY) === '1'; } catch { /* storage blocked: default to sound on */ }
+
+  function start() {
+    if (ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = muted ? 0 : VOLUME;
+    master.connect(ctx.destination);
+
+    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = noise.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+    hum();
+    weldLoop();
+    sweep(55, 220, 1.6, 0.05);
+  }
+
+  // A low machine hum: two detuned saws through a lowpass that slowly breathes.
+  function hum() {
+    const out = ctx.createGain();
+    out.gain.value = 0;
+    out.gain.setTargetAtTime(0.07, ctx.currentTime + 0.4, 1.2);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 160;
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 0.15;
+    lfoGain.gain.value = 50;
+    lfo.connect(lfoGain).connect(lp.frequency);
+    lfo.start();
+    for (const f of [55, 55.6, 110.3]) {
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.value = f;
+      o.connect(lp);
+      o.start();
+    }
+    lp.connect(out).connect(master);
+  }
+
+  function weldLoop() {
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    src.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 2800;
+    bp.Q.value = 0.7;
+    weldGain = ctx.createGain();
+    weldGain.gain.value = 0;
+    src.connect(bp).connect(weldGain).connect(master);
+    src.start();
+  }
+
+  function sweep(from, to, dur, vol) {
+    const o = ctx.createOscillator();
+    const gn = ctx.createGain();
+    const t = ctx.currentTime;
+    o.frequency.setValueAtTime(from, t);
+    o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    gn.gain.setValueAtTime(0, t);
+    gn.gain.linearRampToValueAtTime(vol, t + 0.1);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(master);
+    o.start(t);
+    o.stop(t + dur);
+  }
+
+  function tone(freq, dur, vol, type = 'sine', at = 0) {
+    const o = ctx.createOscillator();
+    const gn = ctx.createGain();
+    const t = ctx.currentTime + at;
+    o.type = type;
+    o.frequency.value = freq;
+    gn.gain.setValueAtTime(vol, t);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(master);
+    o.start(t);
+    o.stop(t + dur);
+  }
+
+  return {
+    start,
+    get muted() { return muted; },
+
+    setMuted(m) {
+      muted = m;
+      try { localStorage.setItem(KEY, m ? '1' : '0'); } catch { /* not remembered, fine */ }
+      if (ctx) master.gain.setTargetAtTime(m ? 0 : VOLUME, ctx.currentTime, 0.05);
+    },
+
+    // A heavy lever: a thump plus a short burst of grit.
+    clunk() {
+      if (!ctx) return;
+      sweep(140, 45, 0.25, 0.35);
+      const src = ctx.createBufferSource();
+      src.buffer = noise;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 900;
+      const gn = ctx.createGain();
+      const t = ctx.currentTime;
+      gn.gain.setValueAtTime(0.25, t);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      src.connect(lp).connect(gn).connect(master);
+      src.start(t);
+      src.stop(t + 0.1);
+    },
+
+    // Robot chatter, one blip per couple of letters.
+    blip() {
+      if (!ctx) return;
+      tone(500 + Math.random() * 700, 0.04, 0.025, 'square');
+    },
+
+    ship() {
+      if (!ctx) return;
+      tone(660, 0.18, 0.05);
+      tone(990, 0.3, 0.05, 'sine', 0.12);
+    },
+
+    // Welding crackle, level 0 to 1, updated every frame.
+    weld(level) {
+      if (!ctx) return;
+      weldGain.gain.setTargetAtTime(level * 0.06, ctx.currentTime, 0.02);
+    },
+  };
+}

@@ -44,3 +44,37 @@ The whole brief was handed over as one context file. Phase 0's instruction, in s
 - `npm run glyphs -- <font.ttf> '<chars>'`: lists which characters a font is missing.
 - URL switches: `?glyphs` (glyph test sheet), `?fps` (stats overlay), `?nocrt`, `?t=14` (fast forward the simulation), `?say=ship%20it.` (make the robot talk), `?seed=7`.
 - Keys: `space` pause, `c` CRT, `g` glow, `f` stats.
+
+## Phase 1: the crew, the power lever and the first skill cards
+
+**Date:** 2026-10-09
+
+### What Robert asked for after Phase 0
+
+- Remove the "CTO · Topflight · The Dark Factory" line under the sign. Just the name.
+- Start with the factory off and a lever to turn it on. Sound on by default, with a mute lever that's part of the factory.
+- He couldn't find anything to click. Skill cards were planned for Phase 3, so a working version was pulled forward.
+- No PDF, GitHub or LinkedIn for now. "This is the CV."
+
+### Decisions
+
+- **One screen, no camera yet.** Phase 1's acceptance says "whole factory visible", and ten robots fit in 180 x 54 cells with a three-level layout: boardroom, catwalk and control tower on top, the line in the middle, the crew floor underneath. Panning can arrive with the guided tour if it's needed.
+- **Robots are built from parts.** Antennas (tip, twin, dish), heads (monitor, dome, goggles, beret, hard hat, visor, single eye, split colour), bodies (standard, tall, wide, slim, stocky, heavy), legs, treads or a wheel, plus a tool in one hand (clipboard, kanban board, stylus, palette, magnifier, cable plug, shield). Each role is about one line of config.
+- **Silhouette first, colour second.** The palette only has four hues, so roles are told apart by shape. The colours repeat but the shapes don't.
+- **Power on is a cascade.** Each part of the factory has a wake time. It flickers for half a second, then stays lit: lever, sign (letter by letter), boardroom, catwalk, tower, then the belt spins up and the crew wake one by one. Anything not yet awake is drawn through a grid colour override, so "unlit" is one line around any drawing code.
+- **Levers are springs.** An underdamped spring makes the handle slam past its stop and settle, which feels heavy.
+- **Sound is synthesised.** WebAudio makes the hum (detuned saws through a breathing lowpass), the lever clunk, the welding crackle, robot chatter blips and a two-note chime per shipped package. No audio files. The mute choice is remembered in localStorage.
+- **Skill cards are real HTML.** A native `<dialog>`: selectable text, Escape to close, readable by screen readers. All text comes from `content.json`. Anything Robert hasn't supplied yet says "to be written" in amber, never invented copy.
+- **Clicks use the grid.** Each frame, everything clickable registers a rectangle in cells. A pointer position becomes a cell, and the topmost rectangle wins.
+
+### What went wrong, and the fixes
+
+1. **The start hint landed on top of the sleeping CEO.** It moved to the empty band above the belt as a callout, with a trail of marching dots leading back to the lever.
+2. **Sleeping robots still glowed.** The hard hat, beret and shield have their own colours in the part masks. Fix: draw sleeping robots entirely through the unlit colour override.
+3. **Scanner beams erased package labels.** Fix: `grid.scan()` recolours whatever is already in a cell and only draws a beam character into empty cells, so the beam sweeps across text instead of replacing it.
+4. **The full stack robot parked on top of other robots.** It now shuttles between two docking spots, the database and the UI rack, which is closer to the brief anyway.
+5. **Control tower log lines were clipped** at 13 characters. They were shortened to fit.
+
+### New debug switches
+
+`?on` (skip the lever), `?pause`, `?card=cto`, `?hover=devops`, `?say=hello&who=pm`. Key `m` toggles sound, and Enter or Space pulls the power lever.

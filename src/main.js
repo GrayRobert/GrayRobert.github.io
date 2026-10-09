@@ -1,6 +1,8 @@
 import { createGrid, C } from './grid.js';
 import { createRenderer, FONT } from './renderer.js';
 import { createWorld } from './world.js';
+import { createAudio } from './audio.js';
+import { createCards } from './card.js';
 
 const stage = document.getElementById('stage');
 const hud = document.getElementById('hud');
@@ -10,17 +12,22 @@ await document.fonts.load(`20px "${FONT}"`);
 
 const grid = createGrid();
 const renderer = createRenderer(stage, grid);
-const world = createWorld(Number(params.get('seed') ?? 7));
+const audio = createAudio();
+const world = createWorld({ seed: Number(params.get('seed') ?? 7), audio });
+const cards = createCards();
 const glyphSheet = params.has('glyphs');
 
 // Rolling frame stats, also exposed for headless checks.
 const perf = { fps: 0, workMs: 0, workMaxMs: 0, changed: 0, frames: 0 };
 const samples = [];
 
-let paused = false;
+let paused = params.has('pause');
 let t = Number(params.get('t') ?? 0); // jump ahead for screenshots
+if (params.has('on')) world.powerOn(t > 0 ? 0 : -10); // skip the lever (screenshots, debugging)
 if (t > 0) for (let s = 0; s < t; s += 1 / 60) world.update(s, 1 / 60);
-if (params.has('say')) world.say(params.get('say'), t);
+if (params.has('say')) world.say(params.get('say'), t, params.get('who') ?? 'cto');
+if (params.has('card')) cards.open(params.get('card'));
+if (params.has('hover')) world.setHover(params.get('hover'));
 let last = performance.now();
 
 function frame(now) {
@@ -52,8 +59,35 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 
+// Pointer: hover highlights levers and robots, click pulls a lever or opens a skill card.
+function hitUnder(e) {
+  const cell = renderer.cellAt(e.clientX, e.clientY);
+  const id = cell ? world.hitAt(cell.x, cell.y) : null;
+  // Until the power is on, only the levers respond.
+  return world.powered || id === 'power' || id === 'sound' ? id : null;
+}
+stage.addEventListener('pointermove', (e) => {
+  const id = hitUnder(e);
+  world.setHover(id);
+  stage.style.cursor = id ? 'pointer' : '';
+});
+stage.addEventListener('pointerleave', () => world.setHover(null));
+stage.addEventListener('click', (e) => {
+  const id = hitUnder(e);
+  if (!id) return;
+  world.activate(id, t);
+  if (id !== 'power' && id !== 'sound' && world.powered) cards.open(id);
+});
+
 let glow = true;
 window.addEventListener('keydown', (e) => {
+  if (cards.isOpen) return; // the dialog handles its own keys
+  if (!world.powered && (e.key === 'Enter' || e.key === ' ')) {
+    world.powerOn(t);
+    e.preventDefault();
+    return;
+  }
+  if (e.key === 'm') world.activate('sound', t);
   if (e.key === ' ') { paused = !paused; e.preventDefault(); }
   if (e.key === 'c') stage.classList.toggle('crt');
   if (e.key === 'g') renderer.setGlow((glow = !glow));

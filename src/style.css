@@ -427,3 +427,12 @@ html.plain body {
     font-size: 11px;
   }
 }
+.strip .pause {
+  margin-left: 12px;
+  min-width: 9ch;
+}
+.strip .pause.active {
+  color: #ffb000;
+  border-color: #ffb000;
+  text-shadow: 0 0 8px rgba(255, 176, 0, 0.5);
+}

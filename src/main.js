@@ -37,7 +37,7 @@ const camera = createCamera(stage, renderer);
 const audio = createAudio();
 const world = createWorld({ seed: Number(params.get('seed') ?? 7), audio });
 const cards = createCards();
-const ui = createTourUI((i) => tour.go(i), () => tour.skip());
+const ui = createTourUI((i) => tour.go(i), () => tour.skip(), () => setPaused(!paused));
 const tour = createTour({ world, camera, ui });
 const hud = createLeverPanel({ onPower: togglePower, onSound: toggleSound, soundOn: !audio.muted });
 const soundToggle = document.getElementById('sound-toggle');
@@ -49,6 +49,14 @@ const glyphSheet = params.has('glyphs');
 
 let t = 0;
 let paused = params.has('pause') || reducedMotion;
+ui.setPaused(paused);
+
+// Pause holds the whole factory still, including the caption, so it can be read at leisure.
+function setPaused(on) {
+  paused = on;
+  ui.setPaused(on);
+  if (on) audio.weld(0); // no welding hiss left hanging
+}
 let plain = false;
 let resumeAt = null; // scene to come back to after a power cut
 
@@ -215,7 +223,7 @@ function frame(nowMs) {
     hud.draw(grid, t, dt);
   }
   const changed = renderer.paint();
-  ui.update();
+  ui.update(dt);
 
   const work = performance.now() - t0;
   samples.push([dt, work]);
@@ -290,7 +298,7 @@ window.addEventListener('keydown', (e) => {
   }
   if (e.key === 'Escape' && !explore) tour.skip();
   if (e.key === 'm') toggleSound();
-  if (e.key === 'p') paused = !paused;
+  if (e.key === 'p') setPaused(!paused);
   if (e.key === 'c') stage.classList.toggle('crt');
   if (e.key === 'g') renderer.setGlow((glow = !glow));
   if (e.key === 'f') stats.hidden = !stats.hidden;

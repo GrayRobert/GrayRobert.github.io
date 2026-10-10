@@ -5,7 +5,7 @@ import { SCENES } from './tour.js';
 
 const TYPE_RATE = 45; // characters per second
 
-export function createTourUI(onPick, onSkip) {
+export function createTourUI(onPick, onSkip, onPause) {
   const root = document.createElement('div');
   root.className = 'tour';
   root.hidden = true;
@@ -29,6 +29,13 @@ export function createTourUI(onPick, onSkip) {
     strip.append(b);
     return b;
   });
+  // Pause freezes everything: the factory, the tour and the caption mid-sentence.
+  const pause = document.createElement('button');
+  pause.type = 'button';
+  pause.className = 'pause';
+  pause.addEventListener('click', onPause);
+  strip.append(pause);
+
   const skip = document.createElement('button');
   skip.type = 'button';
   skip.className = 'skip';
@@ -40,8 +47,9 @@ export function createTourUI(onPick, onSkip) {
   document.body.append(root);
 
   let lines = [];
-  let started = 0;
+  let typing = 0; // seconds of typing so far, which stops while paused
   let isLog = false;
+  let paused = false;
 
   return {
     show() { root.hidden = false; },
@@ -49,7 +57,7 @@ export function createTourUI(onPick, onSkip) {
     caption(text, { log = false } = {}) {
       lines = Array.isArray(text) ? text : [text];
       isLog = log;
-      started = performance.now();
+      typing = paused ? 1e6 : 0; // while paused, a new caption appears in full so it can be read
       live.textContent = lines.join('. ');
     },
     setScene(i) {
@@ -62,9 +70,16 @@ export function createTourUI(onPick, onSkip) {
       });
       skip.hidden = i === SCENES.length - 1;
     },
+    setPaused(on) {
+      paused = on;
+      pause.textContent = on ? '▶ play' : '❚❚ pause';
+      pause.setAttribute('aria-pressed', String(on));
+      pause.classList.toggle('active', on);
+    },
     // Types the caption out, a terminal line at a time.
-    update() {
-      const n = Math.floor(((performance.now() - started) / 1000) * TYPE_RATE);
+    update(dt) {
+      if (!paused) typing += dt;
+      const n = Math.floor(typing * TYPE_RATE);
       let left = n;
       const shown = lines.map((l) => {
         const part = l.slice(0, Math.max(0, left));
@@ -72,7 +87,7 @@ export function createTourUI(onPick, onSkip) {
         return part;
       });
       const text = (isLog ? shown.map((l) => (l ? '> ' + l : '')).filter(Boolean) : shown).join('\n');
-      const cursor = Math.floor(performance.now() / 400) % 2 ? '▌' : ' ';
+      const cursor = paused ? ' ❚❚' : Math.floor(performance.now() / 400) % 2 ? '▌' : ' ';
       const next = text + cursor;
       if (caption.textContent !== next) caption.textContent = next;
     },

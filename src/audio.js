@@ -162,10 +162,12 @@ export function createAudio() {
       tone(990, 0.3, 0.05, 'sine', 0.12);
     },
 
-    // One question on the WHY board: a high tick for yes, a low one for no.
-    tick(pass) {
+    // One question on the WHY board: high for yes, low for no, in between for "don't know".
+    tick(mark) {
       if (!ctx) return;
-      tone(pass ? 1320 : 220, 0.06, 0.04, pass ? 'sine' : 'square');
+      if (mark === '✓' || mark === true) tone(1320, 0.06, 0.04);
+      else if (mark === '?') tone(660, 0.09, 0.035, 'triangle');
+      else tone(220, 0.06, 0.04, 'square');
     },
     approve() {
       if (!ctx) return;

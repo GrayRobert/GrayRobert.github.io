@@ -8,6 +8,16 @@ import { BELT_Y, FLOOR_Y, PKG_W, STATION } from './layout.js';
 import { BIN_X } from './crew.js';
 
 const WHY_CHECKS = ['who uses it?', 'will they pay?', 'roi?', 'secure?', 'governance?'];
+// Three possible answers to each question. "Don't know yet" on the value questions is not
+// a no: it makes the idea an experiment. Security and governance always need a yes.
+const MARKS = {
+  pass: ['✓', '✓', '✓', '✓', '✓'],
+  fail: ['✗', '✗', '✗', '✓', '✓'], // we asked: nobody wants it
+  experiment: ['?', '?', '?', '✓', '✓'], // nobody knows yet
+};
+const VERDICT = { pass: 'approved', fail: 'rejected', experiment: 'experiment' };
+const MARK_COLOR = { '✓': C.green, '✗': C.red, '?': C.amber };
+const outcomeOf = (o) => (o === true ? 'pass' : o === false ? 'fail' : o);
 
 export function createStations(w) {
   // w: { rnd, audio, lit(zone, delay), setStage(pkg, s), remove(pkg), burst(...), debris(pkg), packages, deployed() }
@@ -21,8 +31,10 @@ export function createStations(w) {
     scrap: 0,
 
     // step: seconds per question. pass: will it pass?
-    check(pkg, pass, t, step = 0.4) {
-      why.run = { pkg, t0: t, step, pass, ticked: 0 };
+    // outcome: 'pass', 'fail' or 'experiment'
+    check(pkg, outcome, t, step = 0.4) {
+      outcome = outcomeOf(outcome);
+      why.run = { pkg, t0: t, step, outcome, marks: MARKS[outcome], ticked: 0 };
       why.verdict = null;
     },
 
@@ -40,20 +52,21 @@ export function createStations(w) {
       const n = Math.min(WHY_CHECKS.length, Math.floor((t - r.t0) / r.step));
       while (r.ticked < n) {
         r.ticked++;
-        w.audio?.tick(r.pass);
+        w.audio?.tick(r.marks[r.ticked - 1]);
       }
       if (n >= WHY_CHECKS.length && !why.verdict) {
-        why.verdict = r.pass ? 'approved' : 'rejected';
+        why.verdict = VERDICT[r.outcome];
         why.verdictAt = t;
         r.done = t;
-        if (r.pass) w.audio?.approve();
+        if (r.outcome === 'pass') w.audio?.approve();
       }
     },
 
     // Jump straight to a finished check (used when the tour skips ahead).
-    show(pass) {
-      why.run = { pass, ticked: WHY_CHECKS.length, t0: -9, step: 1 };
-      why.verdict = pass ? 'approved' : 'rejected';
+    show(outcome) {
+      outcome = outcomeOf(outcome);
+      why.run = { outcome, marks: MARKS[outcome], ticked: WHY_CHECKS.length, t0: -9, step: 1 };
+      why.verdict = VERDICT[outcome];
       why.verdictAt = -9;
     },
 
@@ -72,14 +85,15 @@ export function createStations(w) {
         const done = r && i < r.ticked;
         const active = r && i === r.ticked && !why.verdict;
         g.text(bx + 2, y, q, active ? C.white : done ? C.steel : C.grey);
-        const mark = done ? (r.pass ? '✓' : '✗') : active && Math.floor(t * 8) % 2 ? '?' : '·';
-        g.put(bx + bw - 3, y, mark, done ? (r.pass ? C.green : C.red) : C.greyDark);
+        const mark = done ? r.marks[i] : active && Math.floor(t * 8) % 2 ? '?' : '·';
+        g.put(bx + bw - 3, y, mark, done ? MARK_COLOR[mark] : C.greyDark);
       });
       const v = why.verdict;
       if (v) {
         const flash = t - why.verdictAt < 0.6 && Math.floor(t * 12) % 2;
-        const word = v === 'approved' ? 'APPROVED' : 'REJECTED';
-        g.text(bx + Math.floor((bw - word.length) / 2), by + 12, word, flash ? C.white : v === 'approved' ? C.green : C.red);
+        const word = v.toUpperCase();
+        const col = { approved: C.green, rejected: C.red, experiment: C.amber }[v];
+        g.text(bx + Math.floor((bw - word.length) / 2), by + 12, word, flash ? C.white : col);
       } else {
         g.text(bx + 9, by + 12, '. . .', C.greyDark);
       }
@@ -93,14 +107,14 @@ export function createStations(w) {
         g.put(x0, y, '║', C.grey);
         g.put(x1, y, '║', C.grey);
       }
-      const lamp = v === 'approved' ? C.green : v === 'rejected' ? C.red : r ? C.amber : C.greyDark;
+      const lamp = v === 'approved' ? C.green : v === 'rejected' ? C.red : v === 'experiment' || r ? C.amber : C.greyDark;
       g.put(x0, top + 2, '●', lamp);
       g.put(x1, top + 2, '●', lamp);
 
-      // Scrap heap of rejected ideas on the floor below
+      // Scrap heap of rejected ideas, on the floor to the left of the lab
       const heap = Math.min(5, why.scrap);
-      for (let i = 0; i < heap; i++) g.text(STATION.why - 4 + i, FLOOR_Y - 1, '▄', i % 2 ? C.amberDim : C.redDim);
-      if (heap) g.text(STATION.why - 5, FLOOR_Y - 2, 'scrap', C.greyDark);
+      for (let i = 0; i < heap; i++) g.text(20 + i, FLOOR_Y - 1, '▄', i % 2 ? C.amberDim : C.redDim);
+      if (heap) g.text(19, FLOOR_Y - 2, 'scrap', C.greyDark);
     },
 
     drawFx(g, t) {

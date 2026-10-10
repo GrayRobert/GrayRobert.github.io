@@ -23,6 +23,7 @@ Some of the steering that shaped what you see:
 
 - **"It's very cluttered now with all the robots."** The factory became a long line with a camera, and each station only lights up when the idea reaches it.
 - **"I like the idea that ideas are scanned for WHY at the start."** The WHY gate asks who uses it, will they pay, what's the return, is it secure, is it allowed. No good answers, and the laser fires.
+- **"I think the WHY gate should have an override for experiment or innovation. Sometimes we don't know the ROI, who will use it or who will pay for it."** Each question can now be answered yes, no or "don't know yet". Unknowns are not rejected: they drop into the lab for a small, time-boxed experiment, and either get promoted back to the line or kept as a lesson.
 - **"Power and sound don't turn off."** Both levers were fixed, then tested by actually clicking them.
 - **"I like the idea that it shows what I do to keep systems running."** The NOC and the 2am alert.
 - **"Robert Gray, a CTO and Engineering Manager, can run an entire dark factory, a fleet of AI agents, real teams, or just do it all."** That became the line the whole site is built around.

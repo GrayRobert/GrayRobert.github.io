@@ -97,19 +97,25 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       await show('Who uses it? Will they pay? Is it worth it? Is it safe? Is it allowed?');
       st.why.check(bad, false, now, 0.38);
       await wait(st.why.duration(0.38) + 0.4);
-      await show('No clear value? Laser.');
+      await show('We asked. Nobody wants it, nobody will pay. Laser.');
       st.why.zap(bad, now);
       await wait(0.8);
       say('ceo', 'next.');
       await wait(1.2);
       await show('Next.');
       await carry(hero, 'why');
-      await show('Same questions.');
-      st.why.check(hero, true, now, 0.3);
+      await show('Same questions. This time, nobody knows yet.');
+      st.why.check(hero, 'experiment', now, 0.3);
       await wait(st.why.duration(0.3) + 0.4);
-      await show('Real users, real money, real reasons. Approved.');
+      // Not knowing is not a no: the idea drops through a trapdoor into the lab.
+      await show("Not knowing isn't a no. It goes to the lab.");
+      st.lab.take(hero, now, { outcome: 'promote', dur: 4 });
+      await until(() => st.lab.phase === 'testing');
+      await show('A small, time-boxed experiment. Still secure, still compliant.');
+      await until(() => st.lab.phase === 'idle' && world.packages.includes(hero), 15);
+      await show('It found real users. Promoted to the line.');
       say('ceo', 'love it.');
-      await wait(2.8);
+      await wait(2.4);
     },
 
     async plan() {

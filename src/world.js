@@ -10,6 +10,7 @@ import { bigText, bigTextWidth } from './bigtext.js';
 import { createCrew, hash } from './crew.js';
 import { createStations } from './stations.js';
 import { createNoc } from './noc.js';
+import { createLab } from './lab.js';
 import {
   WORLD_COLS, FLOOR_Y, BELT_Y, BELT_X0, BELT_X1, PKG_W, ZONES, STATION, zoneAt, isNarrow,
 } from './layout.js';
@@ -24,6 +25,7 @@ const STAGES = {
   tested: ['✓ tested', C.cyan],
 };
 const BAD_IDEAS = ['{ hype }', '{ fomo }', '{ meh. }', '{ fad. }'];
+const EXPERIMENTS = ['{ wild }', '{ beta }', '{ v0.1 }'];
 const FREE_SPEED = 7; // cells per second
 const TOUR_SPEED = 18;
 
@@ -129,6 +131,15 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     deploy: () => { deployed++; },
     deployed: () => deployed,
   });
+  // The lab under the WHY gate, for ideas nobody can answer the value questions for yet.
+  const lab = createLab({
+    rnd, audio, remove,
+    get packages() { return packages; },
+    insert: (p) => packages.push(p),
+    // Promoted with evidence: the WHY board flips to approved.
+    promoted: (p) => { if (stations.why.run?.pkg === p) stations.why.show('pass'); },
+  });
+  stations.lab = lab;
   const noc = createNoc({ rnd, audio }, crew);
   noc.reset();
   stations.noc = noc;
@@ -169,6 +180,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     s.secure.update(t, dt);
     s.test.update(t, dt);
     s.ship.update(t, dt);
+    lab.update(t);
     noc.update(t, dt);
 
     for (const p of particles) {
@@ -212,8 +224,12 @@ export function createWorld({ seed = 7, audio = null } = {}) {
   function freeRun(t) {
     const s = stations;
     if (belt.step >= nextSpawn) {
-      const bad = rnd() < 0.25;
-      spawn({ bad, label: bad ? BAD_IDEAS[Math.floor(rnd() * BAD_IDEAS.length)] : null });
+      // A mix of ideas: some clearly bad, some unknowns for the lab, most good.
+      const r = rnd();
+      const outcome = r < 0.2 ? 'fail' : r < 0.5 ? 'experiment' : 'pass';
+      const pool = outcome === 'fail' ? BAD_IDEAS : outcome === 'experiment' ? EXPERIMENTS : null;
+      const p = spawn({ bad: outcome === 'fail', label: pool ? pool[Math.floor(rnd() * pool.length)] : null });
+      p.outcome = outcome;
       nextSpawn = belt.step + 24 + Math.floor(rnd() * 10);
     }
     for (const p of [...packages]) {
@@ -221,12 +237,17 @@ export function createWorld({ seed = 7, audio = null } = {}) {
       const d = p.done;
       if (!d.why && c >= STATION.why - 5) {
         d.why = true;
-        s.why.check(p, !p.bad, t, 0.14);
+        s.why.check(p, p.outcome ?? (p.bad ? 'fail' : 'pass'), t, 0.14);
         p.whyAt = t + s.why.duration(0.14);
       }
       if (p.whyAt && t >= p.whyAt) {
         p.whyAt = 0;
         if (p.bad) { s.why.zap(p, t); continue; }
+        if (p.outcome === 'experiment') {
+          // To the lab if it's free, otherwise it carries on as an experiment.
+          if (!lab.busy) { lab.take(p, t, { outcome: rnd() < 0.55 ? 'promote' : 'learn', dur: 3 }); continue; }
+          p.experiment = true;
+        }
       }
       if (!d.plan && c >= STATION.plan) { d.plan = true; s.plan.stamp(p, t); }
       if (!d.design && c >= STATION.design - 6) { d.design = true; s.design.project(p, t, 0.8); }
@@ -273,6 +294,11 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     }
     drawBelt(g);
     for (const p of packages) drawPackage(g, p, t);
+    zone('why', () => {
+      lab.drawHatch(g);
+      lab.draw(g, t);
+      lab.drawPackage(g, (gg, p, x, y) => drawPackageAt(gg, p, x, y, t));
+    });
     zone('plan', () => s.plan.draw(g, t));
     zone('design', () => s.design.draw(g, t));
     zone('build', () => s.build.draw(g, t));
@@ -408,15 +434,22 @@ export function createWorld({ seed = 7, audio = null } = {}) {
   }
 
   function drawPackage(g, p, t) {
+    drawPackageAt(g, p, p.x, BELT_Y - 3, t);
+  }
+
+  // Experiments get a dashed outline and a beta badge, so they read as "not final yet".
+  function drawPackageAt(g, p, x, y, t) {
     const [label0, col0] = STAGES[p.stage];
     const label = p.label ?? label0;
     const col = p.bad ? C.amberDim : col0;
-    const welding = stations.build.on && p.x <= STATION.build && p.x + PKG_W > STATION.build;
+    const welding = stations.build.on && x <= STATION.build && x + PKG_W > STATION.build;
     const c = p.flash > 0 || (welding && hash(Math.floor(t * 30) + p.id) % 3 === 0) ? C.white : col;
-    g.tinted(isAwake(zoneAt(p.x + PKG_W / 2)) ? 0 : C.greyDark, () => {
-      g.text(p.x, BELT_Y - 3, '╭' + '─'.repeat(PKG_W - 2) + '╮', c);
-      g.text(p.x, BELT_Y - 2, '│`' + label.replaceAll(' ', '`') + '`│', c);
-      g.text(p.x, BELT_Y - 1, '╰' + '─'.repeat(PKG_W - 2) + '╯', c);
+    const [h, v] = p.experiment ? ['┄', '┆'] : ['─', '│'];
+    g.tinted(isAwake(zoneAt(x + PKG_W / 2)) ? 0 : C.greyDark, () => {
+      g.text(x, y, '╭' + h.repeat(PKG_W - 2) + '╮', c);
+      g.text(x, y + 1, v + '`' + label.replaceAll(' ', '`') + '`' + v, c);
+      g.text(x, y + 2, '╰' + h.repeat(PKG_W - 2) + '╯', c);
+      if (p.experiment) g.put(x + PKG_W - 3, y, 'β', C.amber);
     });
   }
 
@@ -545,6 +578,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
       stations.secure.raiseDome(false);
       stations.why.run = null;
       stations.why.verdict = null;
+      lab.reset();
       noc.reset();
     },
 

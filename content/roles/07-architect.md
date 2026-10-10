@@ -1,23 +1,25 @@
 ---
 title: Architect
-pitch: Holds the plans and checks the work against them.
+pitch: I work out how the pieces fit together and how they can evolve.
 tools: Microservices, Service-oriented architecture, API design, AWS, GCP, Docker
 ---
+
 ## Skills
 
-- Led the move of reservation and web systems from a legacy monolith to service-oriented and microservice architectures
-- Distributed systems, service-oriented architecture, microservices and API design
-- Introduced AI-assisted review, so work is checked as it is built
-- Coordinates specialist external partners, managed-service vendors and contractors
+- I’ve led the modernisation of reservation and web systems from a legacy monolith towards services and microservices
+- I design APIs and service boundaries, considering dependencies, data flows and failure modes
+- I’ve introduced AI-assisted code review to help check implementation and design decisions as work progresses
+- I work with specialist partners, managed-service providers and contractors to keep technical decisions aligned
 
 ## Story
 
-Robert set the direction for replatforming Topflight's core systems, from a single legacy application to services with modern front ends. He still checks the work as it is built, whether it comes from his own team, from partners, or from AI agents.
+At Topflight, I’ve shaped the architecture and migration approach for modernising our core systems while they continue to support the business.
+
+I think about what needs to change, what can stay and how much complexity we’re taking on. I stay involved as the work develops, reviewing decisions with the team and our partners and adjusting the plan as we learn.
 
 ## Says
 
-What this robot says now and then in explore mode.
-
-- matches the plan.
-- check the boundaries.
-- one small change.
+- does this need another service?
+- where does that responsibility belong?
+- what happens when that’s unavailable?
+- let’s keep our options open.

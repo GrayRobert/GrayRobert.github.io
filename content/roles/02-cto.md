@@ -1,25 +1,26 @@
 ---
 title: CTO
-pitch: Runs the control tower. Decides what gets built, then helps build it.
-tools: Java, Python, JavaScript, React, Perl, AWS, GCP
+pitch: I turn the technology plan into systems that work, and stay involved in building them.
+tools: Java, Python, JavaScript, React, AWS, GCP
 ---
+
 ## Skills
 
-- CTO at Topflight Travel Group since 2014, after joining as an engineer in 2011
-- Moved the business from on-premise and bare metal to the cloud with 100% uptime through the move
-- Replatformed core reservation and web systems from a legacy monolith to microservices with React, with sub-second page loads
-- Introduced agentic AI workflows and AI-assisted review for a measured 3× gain in engineering throughput
-- Leads and mentors developers, systems engineers and UI/UX practitioners, plus specialist partners
+- I’ve been CTO at Topflight Travel Group since 2014, having joined as an engineer in 2011
+- I led the move from on-premise and bare-metal infrastructure to the cloud without downtime during the migration
+- I lead the modernisation of our core reservation and web systems, moving from a legacy monolith towards microservices and React
+- I’ve introduced agentic AI workflows and AI-assisted code review, measuring their impact on engineering throughput and quality
+- I lead and mentor developers, systems engineers and UI/UX practitioners, working alongside specialist partners
 
 ## Story
 
-Trained in sound technology and music performance, then ran support teams for a wireless ISP, administered systems for a national publisher and learned web development on the job. He joined Topflight in 2011 as a systems and software engineer, became technical project manager in 2012 and CTO in 2014. He's still hands-on.
+My route into technology wasn’t particularly conventional. I trained in sound technology and music performance, ran support and installation teams for a wireless ISP, and worked in systems administration and web development before joining Topflight in 2011.
+
+I became Technical Project Manager in 2012 and CTO in 2014. As my responsibilities have grown, I’ve stayed hands-on. I like understanding how things work, asking whether there’s a simpler approach, and helping the team work through difficult problems.
 
 ## Says
 
-What this robot says now and then in explore mode.
-
-- all green.
-- hmm. one odd log line.
 - keep it simple.
-- checking. again.
+- hmm. that’s an interesting log line.
+- what happens when this fails?
+- let’s check that assumption.

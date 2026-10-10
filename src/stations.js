@@ -7,7 +7,7 @@ import { bigText } from './bigtext.js';
 import { BELT_Y, FLOOR_Y, PKG_W, STATION } from './layout.js';
 import { BIN_X } from './crew.js';
 
-const WHY_CHECKS = ['who uses it?', 'will they pay?', 'roi?', 'secure?', 'governance?'];
+const WHY_CHECKS = ['who needs it?', 'what value?', 'worth building?', 'safe?', 'allowed?'];
 // Three possible answers to each question. "Don't know yet" on the value questions is not
 // a no: it makes the idea an experiment. Security and governance always need a yes.
 const MARKS = {
@@ -157,10 +157,11 @@ export function createStations(w) {
       const headY = 26 + Math.round(drop * 3);
       g.text(x - 4, 24, '╘═══╤═══╛', C.grey);
       for (let y = 25; y < headY; y++) g.put(x, y, '┃', C.grey);
-      g.text(x - 3, headY, '╔══╧══╗', C.steel);
-      g.text(x - 3, headY + 1, '║`````║', C.steel);
+      // Six cells inside, so the four letters sit with one space either side.
+      g.text(x - 3, headY, '╔══╧═══╗', C.steel);
+      g.text(x - 3, headY + 1, '║``````║', C.steel);
       g.text(x - 1, headY + 1, 'PLAN', drop > 0.9 ? C.white : C.amberDim);
-      g.text(x - 3, headY + 2, '╚═════╝', C.steel);
+      g.text(x - 3, headY + 2, '╚══════╝', C.steel);
     },
   };
 

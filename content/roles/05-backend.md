@@ -1,25 +1,28 @@
 ---
 title: Backend Engineer
-pitch: Down in the machine room, shaping raw data into things that work.
-tools: Java, Python, Perl, Spring Boot, Django, PostgreSQL, MSSQL, MySQL
+pitch: I build the services and data systems that keep things running.
+tools: Java, Python, Spring Boot, PostgreSQL, MSSQL, MySQL, Redis
 ---
+
 ## Skills
 
-- Hands-on in Java, Python and Perl
-- Spring Boot, Hibernate, MyBatis and Django
-- PostgreSQL, MSSQL and MySQL
-- API design, service-oriented architecture and microservices
-- Builds data pipelines, BI, and statistical and machine learning models
-- Helped move the Eumom platform from Classic ASP to .NET and C#
+- I write backend code in Java and Python
+- I work with Spring Boot, Hibernate and MyBatis
+- I use PostgreSQL and MySQL mostly
+- I design APIs and work with service-oriented architectures and microservices
+- I build data pipelines, business intelligence tools, statistical models and dashboards
 
 ## Story
 
-Robert started at Topflight as a systems and software engineer in 2011, and the reservation systems he now runs are ones he has worked on from the inside. He led their move from a legacy monolith to services and microservices.
+I joined Topflight as a systems and software engineer in 2011, so I know our reservation systems from working on the code as well as being responsible for them.
+
+I’ve led their modernisation from a legacy monolith towards services and microservices. That work involves understanding the business rules, untangling dependencies and finding ways to improve systems while people continue to rely on them every day.
 
 ## Says
 
-What this robot says now and then in explore mode.
-
-- schema migrated.
-- query is fast now.
-- pipes are flowing.
+- what’s the query plan saying?
+- there’s a business rule in here somewhere.
+- what happens if this runs twice?
+- that should make the database happier.
+- is this thread safe?
+- is it idempotent?

@@ -4,7 +4,7 @@ Every word on the site lives in this folder. Edit a file, save it, and an open d
 
 ## Files
 
-- `profile.md` is the top of the plain CV: name, role, tagline, summary, experience, education and interests. Its `description` line is the text search engines and link previews (LinkedIn, Slack) show.
+- `profile.md` is the top of the plain CV: name, role, tagline, summary, experience, education and interests. Its `description` line is the text search engines and link previews (LinkedIn, Slack) show, and its `intro` line sits above the roles in the plain CV. A job is either `### Title | Company | Dates`, or `### Company | Dates` with a `#### Title` line under it, followed by one or more paragraphs.
 - `roles/` has one file per robot: its skill card and what it says. The number at the start of the file name sets the order, and the rest is the robot's id (for example `02-cto.md` is the CTO robot, linked as `#agent-cto`).
 - `tour.md` is every caption in the guided tour, scene by scene, plus the lines robots say during it, the boot log and the "pull the lever" hint.
 - `making.md` is the "how this was made" page.
@@ -39,7 +39,8 @@ Each line is `- key: text`. Change the text after the colon freely, but leave th
 
 ## House style
 
-- No em dashes or en dashes, and no semicolons in page copy.
+- No em dashes or en dashes, and no semicolons in page copy. The build prints a warning naming the file and line if any slip in.
+- First person throughout ("I lead", "my team"). Robot speech bubbles are lower case and end with a full stop or question mark.
 - Short sentences. Confident, warm, a little wry.
 - Only real facts. If something is not known yet, write `TODO_ROBERT` and it shows as "to be written" on the card and is left out of the plain CV.
 - Give the team the doing. Use "led", "brought in", "pushed for" for team outcomes, and keep "built" and "wrote" for things done hands-on.

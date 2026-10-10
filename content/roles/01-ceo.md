@@ -1,24 +1,25 @@
 ---
 title: CEO
-pitch: Sets the direction and keeps the whole factory pointed at it.
+pitch: I keep the factory focused on where the business needs to go.
 tools: Technology strategy, Roadmaps, Vendor management, ICT governance
 ---
+
 ## Skills
 
-- Co-develops organisational strategy with the leadership team at Topflight Travel Group
-- Leads technology strategy on a rolling five-year horizon with senior leadership
-- Owns the systems behind €50M+ in annual turnover
-- Owns critical technology procurement and vendor delivery, and makes sure the value is real
-- MSc Leadership, Innovation and Technology, First Class Honours
+- I help shape organisational strategy with the leadership team at Topflight Travel Group
+- I develop technology strategy with senior leadership, working to a rolling five-year roadmap
+- I’m responsible for the technology supporting €50M+ in annual turnover
+- I lead technology procurement and supplier relationships, with a focus on delivery and value
+- I hold an MSc in Leadership, Innovation and Technology with First Class Honours
 
 ## Story
 
-Robert sits at the leadership table as well as the keyboard. He helps set the group's strategy, owns the technology that carries more than €50M a year, and plans five years out. His MSc research looked at what makes software outsourcing actually work.
+I work with the leadership team to understand where the business wants to go and how technology can help us get there. At Topflight Travel Group, that means contributing to organisational strategy and turning it into practical technology plans, balancing long-term improvements with day-to-day business needs.
+
+My MSc research explored what makes software outsourcing succeed. It’s a question I’ve also spent plenty of time working through in practice.
 
 ## Says
 
-What this robot says now and then in explore mode.
-
-- love the energy.
-- vision: delivered.
-- numbers look good.
+- what are we trying to achieve?
+- nice idea. how does it help?
+- let’s give that a bit of thought.

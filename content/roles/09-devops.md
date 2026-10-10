@@ -1,24 +1,26 @@
 ---
 title: Systems, DevOps and IT
-pitch: First responder for the systems he built. Yes, even at 2am.
-tools: AWS, GCP, Docker, Jenkins, Linux, Networking
+pitch: I build and maintain the infrastructure, and get involved when things go wrong.
+tools: AWS, GCP, Docker, Jenkins, Linux, Networking, Sentry
 ---
+
 ## Skills
 
-- Moved everything from on-premise and bare metal to AWS and GCP with 100% uptime, enabling fully remote operations
-- CI/CD, Jenkins, Docker, Linux and networking
-- Checks everything is up roughly hourly, evenings and weekends included
-- IT Systems Administrator for 60+ staff at Harmonia Publishing
-- Built and led the support and installation teams at ICE Broadband, a wireless ISP
+- I led the move from on-premise and bare-metal infrastructure to AWS and GCP without downtime during the migration, enabling fully remote operations
+- I work with CI/CD pipelines, Jenkins, Docker, Linux and networking
+- I take responsibility for system reliability, monitoring and incident response
+- I managed IT systems and support for more than 60 staff at Harmonia Publishing
+- I built and led support and installation teams at ICE Broadband, a wireless ISP
 
 ## Story
 
-Robert is first responder for the systems he built. He has redeployed at 2am after a memory leak and taken heap dumps to find out exactly why it happened, so it wouldn't happen again.
+My background spans IT support, networking, systems administration and cloud infrastructure. I’ve worked with the people using the systems as well as the technology behind them.
+
+I still get involved when something goes wrong. That has included a 2am redeployment after a memory leak, followed by analysing heap dumps to understand the cause. Restoring service comes first. Understanding the failure and reducing the chance of a repeat comes next.
 
 ## Says
 
-What this robot says now and then in explore mode.
-
-- deploying.
-- it is 2am somewhere.
-- rack is happy.
+- deploying. keeping an eye on it.
+- service is back. now, what happened?
+- have we tested the restore?
+- quieter logs. that’s better.

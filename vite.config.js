@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { renderCv } from './src/cv.js';
 import { renderMarkdown } from './src/md.js';
-import { loadContent } from './src/content-loader.js';
+import { loadContent, styleProblems } from './src/content-loader.js';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
 // All the site's words live in content/ as Markdown.
@@ -18,6 +18,8 @@ function content() {
     resolveId: (source) => (source === id ? '\0' + id : null),
     load: (key) => (key === '\0' + id ? `export default ${JSON.stringify(loadContent())};` : null),
     transformIndexHtml(html) {
+      const problems = styleProblems();
+      if (problems.length) console.warn(`\nHouse style: em dash, en dash or semicolon in the copy\n  ${problems.join('\n  ')}\n`);
       const making = fs.readFileSync('content/making.md', 'utf8');
       const content = loadContent();
       const description = (content.person.description ?? '').replace(/"/g, '&quot;');

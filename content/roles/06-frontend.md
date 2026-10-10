@@ -1,23 +1,24 @@
 ---
 title: Frontend Engineer
-pitch: Builds the part people see and makes it feel fast.
+pitch: I build interfaces that feel clear, responsive and good to use.
 tools: JavaScript, TypeScript, React, Next.js, Vue.js, HTML, CSS
 ---
+
 ## Skills
 
-- Rebuilt reservation and web front ends in React with sub-second page loads
-- JavaScript, TypeScript, React, Next.js and Vue.js
-- Self-taught web developer
-- Built company websites and campaigns at Eumom
+- I’ve led the rebuild of our reservation and web interfaces in React, with a focus on performance and usability
+- I work with JavaScript, TypeScript, React, Next.js and previously Vue.js
+- I taught myself web development and have kept learning as the tools have evolved
 
 ## Story
 
-Robert taught himself web development and never stopped. The latest round was moving business-critical booking flows onto modern React front ends that load in under a second.
+I taught myself web development by building things, and that’s still how I learn best.
+
+My work has ranged from company websites to booking interfaces that people depend on every day. I enjoy bringing design into working code and getting the details right: how a page responds, how it behaves on a smaller screen and what happens when something goes wrong.
 
 ## Says
 
-What this robot says now and then in explore mode.
-
-- pixel perfect.
-- dark mode, obviously.
-- snaps right in.
+- how does it feel on mobile?
+- that layout’s shifted again.
+- can we make that a bit quicker?
+- nice. that feels right.

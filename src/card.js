@@ -39,7 +39,7 @@ function render(agent) {
     el('h3', {}, ['skills']),
     el('ul', {}, agent.skills.map((s) => el('li', {}, [text(s)]))),
     el('h3', {}, ['story']),
-    el('p', {}, [text(agent.story)]),
+    ...agent.story.split('\n\n').map((p) => el('p', {}, [text(p)])),
     el('h3', {}, ['tools']),
     el('p', { className: 'card-tools' }, agent.tools.map((s) => el('span', {}, [text(s)]))),
   );

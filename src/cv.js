@@ -4,8 +4,10 @@
 
 const TODO = 'TODO_ROBERT';
 
-const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const known = (list) => list.filter((s) => s && s !== TODO);
+// Text with blank lines between paragraphs becomes one <p> per paragraph.
+const paras = (s) => (s ? s.split('\n\n').map((p) => `<p>${esc(p)}</p>`).join('') : '');
 
 export function renderCv(content) {
   const { person, agents } = content;
@@ -13,7 +15,7 @@ export function renderCv(content) {
     .map((a) => {
       const skills = known(a.skills);
       const tools = known(a.tools);
-      const story = a.story && a.story !== TODO ? `<p>${esc(a.story)}</p>` : '';
+      const story = a.story && a.story !== TODO ? paras(a.story) : '';
       return `
       <section class="cv-role" id="cv-${esc(a.id)}" aria-labelledby="cv-${esc(a.id)}-title">
         <h2 id="cv-${esc(a.id)}-title">${esc(a.title)}</h2>
@@ -26,7 +28,10 @@ export function renderCv(content) {
     .join('');
 
   const jobs = (person.experience ?? [])
-    .map((j) => `<li><strong>${esc(j.title)}</strong>, ${esc(j.org)} <span class="cv-dates">${esc(j.dates)}</span><br />${esc(j.detail)}</li>`)
+    .map((j) => {
+      const head = [j.title && `<strong>${esc(j.title)}</strong>`, esc(j.org)].filter(Boolean).join(', ');
+      return `<li>${head} <span class="cv-dates">${esc(j.dates)}</span>${paras(j.detail)}</li>`;
+    })
     .join('');
 
   return `
@@ -34,9 +39,9 @@ export function renderCv(content) {
       <h1>${esc(person.name)}</h1>
       <p class="cv-role-line">${esc(person.role)}</p>
       <p class="cv-tagline">${esc(person.tagline)}</p>
-      <p>${esc(person.summary)}</p>
+      ${paras(person.summary)}
     </header>
-    <p class="cv-intro">Every robot in the factory is a role Robert has held or can cover. Here is the person behind each one.</p>
+    ${person.intro ? `<p class="cv-intro">${esc(person.intro)}</p>` : ''}
     ${roles}
     <section aria-labelledby="cv-experience">
       <h2 id="cv-experience">Experience</h2>
@@ -46,5 +51,5 @@ export function renderCv(content) {
       <h2 id="cv-education">Education</h2>
       <ul>${person.education.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>
     </section>
-    ${person.interests ? `<section aria-labelledby="cv-interests"><h2 id="cv-interests">Interests</h2><p>${esc(person.interests)}</p></section>` : ''}`;
+    ${person.interests ? `<section aria-labelledby="cv-interests"><h2 id="cv-interests">Interests</h2>${paras(person.interests)}</section>` : ''}`;
 }

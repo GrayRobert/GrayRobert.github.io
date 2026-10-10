@@ -1,23 +1,25 @@
 ---
 title: Cybersecurity
-pitch: Guards the perimeter. Suspicious traffic does not get a second chance.
+pitch: I work to protect our systems and data, and prepare for when things go wrong.
 tools: GDPR, ISO 27001, Incident response, AWS, GCP
 ---
+
 ## Skills
 
-- Leads security, data protection and cyber security practice at Topflight Travel Group
-- Data Protection Officer, responsible for GDPR compliance
-- Incident readiness and ISO 27001-aligned controls
-- Blocks suspicious traffic out of hours when it shows up
+- I lead security and data protection practices at Topflight Travel Group
+- As Data Protection Officer, I advise on and monitor GDPR compliance
+- I work with ISO 27001-aligned controls and incident response planning
+- I investigate suspicious activity and take action to protect our systems
 
 ## Story
 
-Security is part of Robert's day job, not a side project. He is the Data Protection Officer, runs ISO 27001-aligned controls, and keeps watch out of hours.
+Security and data protection are part of my everyday responsibilities. I work on practical controls, incident readiness and how we handle personal data across the business.
+
+I stay involved in the technical side too, investigating suspicious traffic and responding when needed. I want to understand where we’re exposed, whether our controls are working and how we would respond to an incident.
 
 ## Says
 
-What this robot says now and then in explore mode.
-
-- access denied.
-- nice try.
-- perimeter secure.
+- does that access need to be there?
+- that traffic looks unusual.
+- what data are we keeping, and why?
+- let’s check the permissions.

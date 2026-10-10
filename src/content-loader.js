@@ -24,6 +24,19 @@ export function loadContent(dir = 'content') {
   return { person, agents, tour };
 }
 
+// House style: no em dashes, en dashes or semicolons in the copy. Returns one
+// "file:line  text" string per offending line, for the build to print as a warning.
+export function styleProblems(dir = 'content') {
+  const files = ['profile.md', 'tour.md', 'making.md', ...fs.readdirSync(path.join(dir, 'roles')).map((f) => path.join('roles', f))];
+  const problems = [];
+  for (const f of files.filter((f) => f.endsWith('.md'))) {
+    read(path.join(dir, f))
+      .split('\n')
+      .forEach((line, i) => /[—–;]/.test(line) && problems.push(`content/${f}:${i + 1}  ${line.trim()}`));
+  }
+  return problems;
+}
+
 // tour.md: "## scene" headings, then "- key: text" lines.
 function parseTour(text) {
   const out = {};
@@ -69,7 +82,7 @@ function sections(body, level = '## ') {
 }
 
 const bullets = (text = '') => text.split('\n').filter((l) => l.startsWith('- ')).map((l) => l.slice(2).trim());
-const paragraphs = (text = '') => text.split(/\n\s*\n/).map((p) => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean).join(' ');
+const paragraphs = (text = '') => text.split(/\n\s*\n/).map((p) => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean).join('\n\n');
 const list = (value = '') => value.split(',').map((s) => s.trim()).filter(Boolean);
 
 function parseRole(id, text) {
@@ -89,21 +102,31 @@ function parseRole(id, text) {
 function parseProfile(text) {
   const { meta, body } = frontMatter(text);
   const s = sections(body);
-  // Experience: "### Title | Org | Dates" then a paragraph of detail.
+  // Experience: "### Title | Org | Dates", or "### Org | Dates" with a "#### Title" line
+  // under it, then one or more paragraphs of detail.
   const experience = [];
+  let detail = '';
+  const finish = () => experience.length && (experience.at(-1).detail = paragraphs(detail));
   for (const line of (s.experience ?? '').split('\n')) {
-    if (line.startsWith('### ')) {
-      const [title, org, dates] = line.slice(4).split('|').map((x) => x.trim());
+    if (line.startsWith('#### ') && experience.length) {
+      experience.at(-1).title = line.slice(5).trim();
+    } else if (line.startsWith('### ')) {
+      finish();
+      detail = '';
+      const parts = line.slice(4).split('|').map((x) => x.trim());
+      const [title, org, dates] = parts.length >= 3 ? parts : ['', parts[0], parts[1] ?? ''];
       experience.push({ title, org, dates, detail: '' });
-    } else if (experience.length) {
-      experience.at(-1).detail = (experience.at(-1).detail + ' ' + line.trim()).trim();
+    } else {
+      detail += line + '\n';
     }
   }
+  finish();
   return {
     name: meta.name,
     role: meta.role,
     tagline: meta.tagline,
     description: meta.description,
+    intro: meta.intro,
     summary: paragraphs(s.summary),
     experience,
     education: bullets(s.education),

@@ -51,6 +51,9 @@ export function createTourUI(onPick, onSkip, onPause) {
   let isLog = false;
   let paused = false;
   let talking = false; // true while the caption is still typing out
+  const cursorEl = document.createElement('span');
+  cursorEl.className = 'cursor';
+  let shownText = null;
 
   return {
     captionEl: caption,
@@ -91,9 +94,16 @@ export function createTourUI(onPick, onSkip, onPause) {
         return part;
       });
       const text = (isLog ? shown.map((l) => (l ? '> ' + l : '')).filter(Boolean) : shown).join('\n');
-      const cursor = paused ? ' ❚❚' : Math.floor(performance.now() / 400) % 2 ? '▌' : ' ';
-      const next = text + cursor;
-      if (caption.textContent !== next) caption.textContent = next;
+      // The cursor is glued to the last word (a word joiner, so it can never wrap onto a
+      // line of its own) and blinks by hiding, not by swapping characters, so the caption
+      // never changes size as it blinks.
+      const mark = paused ? ' ❚❚' : '▌';
+      if (shownText !== text || cursorEl.textContent !== mark) {
+        shownText = text;
+        cursorEl.textContent = mark;
+        caption.replaceChildren(document.createTextNode(text + '⁠'), cursorEl);
+      }
+      cursorEl.style.visibility = paused || Math.floor(performance.now() / 400) % 2 ? 'visible' : 'hidden';
     },
   };
 }

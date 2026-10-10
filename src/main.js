@@ -7,6 +7,7 @@ import { createCamera } from './camera.js';
 import { createLeverPanel } from './hud.js';
 import { createTour, SCENES } from './tour.js';
 import { createTourUI } from './tourui.js';
+import { createPresenter } from './presenter.js';
 import { WORLD_COLS, ROWS, view, updateViewCols, viewFor, ZONES } from './layout.js';
 import content from 'virtual:content';
 
@@ -39,6 +40,7 @@ const world = createWorld({ seed: Number(params.get('seed') ?? 7), audio });
 const cards = createCards();
 const ui = createTourUI((i) => tour.go(i), () => tour.skip(), () => setPaused(!paused));
 const tour = createTour({ world, camera, ui });
+const presenter = createPresenter(stage, renderer, ui.captionEl);
 const hud = createLeverPanel({ onPower: togglePower, onSound: toggleSound, soundOn: !audio.muted });
 const soundToggle = document.getElementById('sound-toggle');
 showSound();
@@ -223,6 +225,9 @@ function frame(nowMs) {
     hud.draw(grid, t, dt);
   }
   const changed = renderer.paint();
+  // ROB presents the intro, while the camera is pulled back over the whole factory.
+  presenter.setVisible(world.powered && tour.scene === 'overview', t);
+  presenter.draw(t, ui.talking);
   ui.update(dt);
 
   const work = performance.now() - t0;

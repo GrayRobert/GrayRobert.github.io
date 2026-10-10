@@ -50,8 +50,11 @@ export function createTourUI(onPick, onSkip, onPause) {
   let typing = 0; // seconds of typing so far, which stops while paused
   let isLog = false;
   let paused = false;
+  let talking = false; // true while the caption is still typing out
 
   return {
+    captionEl: caption,
+    get talking() { return talking; },
     show() { root.hidden = false; },
     hide() { root.hidden = true; },
     caption(text, { log = false } = {}) {
@@ -80,6 +83,7 @@ export function createTourUI(onPick, onSkip, onPause) {
     update(dt) {
       if (!paused) typing += dt;
       const n = Math.floor(typing * TYPE_RATE);
+      talking = !paused && n < lines.join('').length;
       let left = n;
       const shown = lines.map((l) => {
         const part = l.slice(0, Math.max(0, left));

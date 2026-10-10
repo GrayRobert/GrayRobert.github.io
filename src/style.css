@@ -436,3 +436,42 @@ html.plain body {
   border-color: #ffb000;
   text-shadow: 0 0 8px rgba(255, 176, 0, 0.5);
 }
+
+/* ROB, the presenter: full size beside the caption during the intro. */
+.presenter {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.presenter.on {
+  opacity: 1;
+}
+.presenter > .layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+/* The caption becomes ROB's speech: a small pointer back toward him. */
+.caption.from-rob-left,
+.caption.from-rob-above {
+  position: relative;
+  border: 1px solid #1f9e45;
+}
+.caption.from-rob-left::before {
+  content: '◀';
+  position: absolute;
+  left: -14px;
+  bottom: 10px;
+  color: #1f9e45;
+}
+.caption.from-rob-above::before {
+  content: '▲';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  color: #1f9e45;
+}

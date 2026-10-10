@@ -37,6 +37,8 @@ export function createNoc(w, crew) {
     nextZ: 0,
     nextAlarm: 0,
     typed: 0,
+    holdFrom: 0, // the tour holds the story still while a caption is read
+    holdUntil: 0,
   };
   for (const k of Object.keys(n.series)) n.series[k] = Array(SAMPLES).fill(0.4);
 
@@ -93,7 +95,15 @@ export function createNoc(w, crew) {
       n.heapTarget = 0.5 + Math.min(1, night) * 0.42;
     }
 
-    switch (n.phase) {
+    // The tour can hold the story still while a caption is read. The clock, graphs and
+    // alarm keep going, only the next step waits. Step timings shift by the hold.
+    const held = t < n.holdUntil;
+    if (!held && n.holdUntil) {
+      n.t0 += n.holdUntil - n.holdFrom;
+      n.holdUntil = 0;
+    }
+
+    if (!held) switch (n.phase) {
       case 'desk':
         if (crossed(BED_TIME)) {
           crew.walkTo('devops', BY_BED, t, 10);
@@ -294,6 +304,11 @@ export function createNoc(w, crew) {
     get phase() { return n.phase; },
     // Free running in explore mode, frozen otherwise.
     setRate(free) { n.rate = free ? DAY_RATE : 0; },
+    // Hold the story at its current step until a given time.
+    hold(from, until) {
+      n.holdFrom = from;
+      n.holdUntil = until;
+    },
     // The tour's set-up: in bed, a few minutes before 2am, with the clock running.
     night(t, minutesBefore = 4, rate = 1.6) {
       inBed();

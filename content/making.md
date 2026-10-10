@@ -2,6 +2,10 @@
 
 Every character on this page is text. No images, no video, no game engine. Robert built it by directing an AI coding agent, Claude Code, through a series of short phases, the same way he runs a real team: a clear brief, small steps, honest reviews.
 
+## Why a factory
+
+"I believe smart, well-intentioned people can use AI to run an entire factory of agents that build and ship quality software. Agents are no different from people when it comes to making mistakes, over-baking, taking shortcuts and ignoring patterns. So I thought it would be fun to design my CV around the idea of a dark factory, relate my experience to the ten core roles in software delivery, and show how it all ties together." Robert
+
 ## The brief
 
 It started with one context file. It said what the page should be (an animated factory that is also a CV), the reaction it should get ("wait, this is just text?"), the ten roles, a visual direction and a technical plan. It also set the working rules:

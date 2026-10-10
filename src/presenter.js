@@ -18,18 +18,23 @@ export function createPresenter(stage, mainRenderer, captionEl) {
   let visible = false;
   let since = 0;
 
-  // Beside the caption on wide screens, above it on narrow ones.
+  // A fixed spot that doesn't follow the caption as it grows. Wide screens: just left of
+  // the widest the caption can get, standing on its baseline. Narrow screens: centred,
+  // above the most room four lines of caption can take.
   function place() {
-    const cap = captionEl.getBoundingClientRect();
+    const cap = captionEl.getBoundingClientRect(); // only its bottom edge is used, which never moves
+    const style = getComputedStyle(captionEl);
+    const maxCaption = Math.min(parseFloat(style.maxWidth) || 760, window.innerWidth - 32);
     const { w, h } = mainRenderer.cssCell;
     const width = COLS * w;
     const height = ROWS * h;
-    const roomLeft = cap.left - width - 16 > 8;
-    const left = roomLeft ? cap.left - width - 12 : cap.left + cap.width / 2 - width / 2;
-    const top = roomLeft ? cap.bottom - height : cap.top - height - 6;
-    renderer.layer.style.transform = `translate(${left}px, ${top}px)`;
-    captionEl.classList.toggle('from-rob-left', visible && roomLeft);
-    captionEl.classList.toggle('from-rob-above', visible && !roomLeft);
+    const left = window.innerWidth / 2 - maxCaption / 2 - width - 8;
+    if (left > 8) {
+      renderer.layer.style.transform = `translate(${left}px, ${cap.bottom - height}px)`;
+    } else {
+      const reserve = parseFloat(style.lineHeight) * 4 + 16;
+      renderer.layer.style.transform = `translate(${window.innerWidth / 2 - width / 2}px, ${cap.bottom - reserve - height}px)`;
+    }
   }
 
   return {
@@ -38,7 +43,6 @@ export function createPresenter(stage, mainRenderer, captionEl) {
       visible = on;
       since = t;
       renderer.layer.classList.toggle('on', on);
-      if (!on) captionEl.classList.remove('from-rob-left', 'from-rob-above');
     },
     draw(t, talking) {
       if (!visible) return;

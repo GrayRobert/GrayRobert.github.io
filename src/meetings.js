@@ -54,18 +54,21 @@ export function createMeetings() {
     chip(g, tx + 1 + who * 6, FLOOR_Y - 8, STEER_CHIPS[(who + Math.floor(t / 10)) % STEER_CHIPS.length]);
   }
 
-  // Sprint demo, under DESIGN: the design on screen changes each revision, people react,
+  // Sprint demo, up in the BUILD zone between the pipes and the welder: demos happen while
+  // the work is being built. The design on screen changes each revision, people react,
   // and the loop runs build, demo, feedback, refine.
   function drawDemo(g, t) {
-    const top = 38;
-    g.text(144, top, ' SPRINT DEMO ', C.steel);
+    const x0 = 204, x1 = 249, top = 16, bottom = 26;
+    g.box(x0, top, x1 - x0 + 1, bottom - top + 1, C.grey, 'round');
+    g.fill(x0 + 1, top + 1, x1 - x0 - 1, bottom - top - 1, ' ', 0);
+    g.text(x0 + 2, top, ' SPRINT DEMO ', C.steel);
+    const sprint = 3 + Math.floor(t / (1.2 * LOOP.length));
+    g.text(x1 - 11, top, ` sprint ${String(sprint).padStart(2, '0')} `, C.amberDim);
 
-    // Everything stays left of column 178: the architect inspects the backend just past it.
-    const sx = 144, sy = top + 1, sw = 19, sh = 7;
+    // The screen, with the design changing each revision
+    const sx = x0 + 2, sy = top + 1, sw = 19, sh = 7;
     const rev = Math.floor(t / 4) % 3;
     g.box(sx, sy, sw, sh, C.grey, 'round');
-    g.fill(sx + 1, sy + 1, sw - 2, sh - 2, ' ', 0);
-    g.text(sx + 2, sy, ' demo ', C.steel);
     g.text(sx + sw - 8, sy + sh - 1, ` rev ${rev + 1} `, C.cyan);
     const ix = sx + 2, iw = sw - 4;
     if (rev === 0) {
@@ -79,14 +82,15 @@ export function createMeetings() {
     }
 
     // Audience
-    for (let i = 0; i < 3; i++) standing(g, 165 + i * 4, FLOOR_Y - 7, PEOPLE[(i + 2) % PEOPLE.length]);
-    const who = Math.floor(t / 1.6) % 3;
-    chip(g, 164 + who * 4, FLOOR_Y - 9, DEMO_CHIPS[(who + Math.floor(t / 4)) % DEMO_CHIPS.length]);
+    const ax = sx + sw + 3;
+    for (let i = 0; i < 4; i++) standing(g, ax + i * 5, top + 4, PEOPLE[(i + 2) % PEOPLE.length]);
+    const who = Math.floor(t / 1.6) % 4;
+    chip(g, ax - 1 + who * 5, top + 2, DEMO_CHIPS[(who + Math.floor(t / 4)) % DEMO_CHIPS.length]);
 
-    // The loop, with the current step lit
+    // The loop, with the current step lit, and its return path back to the start
     const step = Math.floor(t / 1.2) % LOOP.length;
-    let x = 144;
-    const ly = FLOOR_Y - 3;
+    let x = sx;
+    const ly = bottom - 2;
     LOOP.forEach((word, i) => {
       g.text(x, ly, word, i === step ? C.white : C.steel);
       x += word.length;
@@ -97,11 +101,7 @@ export function createMeetings() {
     });
     g.text(x, ly, ' ─╮', C.greyDark);
     const end = x + 2;
-    g.put(144, ly + 1, '▲', C.greyDark);
-    g.put(end, ly + 1, '│', C.greyDark);
-    g.text(144, ly + 2, '╰' + '─'.repeat(end - 145) + '╯', C.greyDark);
-    const sprint = 3 + Math.floor(t / (1.2 * LOOP.length));
-    g.text(158, top, `sprint ${String(sprint).padStart(2, '0')}`, C.amberDim);
+    g.text(sx, ly + 1, '▲' + '─'.repeat(end - sx - 1) + '╯', C.greyDark);
   }
 
   return { drawSteering, drawDemo };

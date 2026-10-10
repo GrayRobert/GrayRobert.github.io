@@ -140,7 +140,6 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       await carry(hero, 'design');
       st.design.project(hero, now, 1.8);
       say('design', 'more whitespace.');
-      await show('Then small loops: demo it, get feedback, refine it, repeat.');
       await wait(3);
     },
 
@@ -154,7 +153,7 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       await wait(1.6);
       say('architect', 'matches the plan.');
       await wait(1.8);
-      await show('Built.');
+      await show('Built in small loops. Every sprint ends in a demo: show it, get feedback, refine, repeat.');
       await wait(1.2);
     },
 

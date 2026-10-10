@@ -301,9 +301,9 @@ export function createWorld({ seed = 7, audio = null } = {}) {
       lab.draw(g, t);
       lab.drawPackage(g, (gg, p, x, y) => drawPackageAt(gg, p, x, y, t));
     });
-    // People: a steering group under PLAN and a sprint demo under DESIGN.
+    // People: a steering group under PLAN, and sprint demos up in the BUILD zone.
     zone('plan', () => meetings.drawSteering(g, t));
-    zone('design', () => meetings.drawDemo(g, t));
+    zone('build', () => meetings.drawDemo(g, t));
     zone('plan', () => s.plan.draw(g, t));
     zone('design', () => s.design.draw(g, t));
     zone('build', () => s.build.draw(g, t));
@@ -397,7 +397,8 @@ export function createWorld({ seed = 7, audio = null } = {}) {
 
   function drawPipes(g) {
     g.text(192, 14, '═'.repeat(76), C.grey);
-    for (const x of [200, 230, 262]) {
+    // Down-pipes either side of the demo room (the middle one went to make room for it).
+    for (const x of [200, 262]) {
       g.put(x, 14, '╦', C.grey);
       for (let y = 15; y < 27; y++) g.put(x, y, '║', C.greyDark);
       g.put(x, 20, '◎', C.steel);

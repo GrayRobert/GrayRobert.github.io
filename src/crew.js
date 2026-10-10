@@ -43,9 +43,10 @@ const ROLES = [
     quips: ['pixel perfect.', 'dark mode, obviously.', 'snaps right in.'],
   },
   {
-    id: 'fullstack', zone: 'build', wake: 0.7, feet: CREW_FLOOR, min: 205, max: 240, stops: [207, 237], speed: 16, arm: 'down', front: true,
-    robot: { label: 'FULL', antenna: 'tip', head: 'split', legs: 'wheel', tool: 'bridge', accent: C.white },
-    quips: ['on my way!', 'both ends covered.', 'need a hand?'],
+    // The foreman: walks the build floor with the plans, checking the work at each end.
+    id: 'architect', zone: 'build', wake: 0.7, feet: CREW_FLOOR, min: 179, max: 246, stops: [179, 246], speed: 9, arm: 'reach', front: true,
+    robot: { label: 'ARCH', antenna: 'none', head: 'whitehat', tool: 'blueprint', accent: C.cyan },
+    quips: ['matches the plan.', 'check the boundaries.', 'one small change.'],
   },
   {
     id: 'security', zone: 'secure', wake: 0.3, feet: CREW_FLOOR, min: 280, max: 285, speed: 4, arm: 'down',
@@ -73,7 +74,8 @@ export function createCrew(rnd, audio) {
   const agents = ROLES.map((r) => ({
     ...r,
     draw: makeRobot(r.robot),
-    x: r.min + Math.floor(rnd() * (r.max - r.min + 1)),
+    // Robots with set stops start at one, so they never start on top of a neighbour.
+    x: r.stops ? r.stops[0] : r.min + Math.floor(rnd() * (r.max - r.min + 1)),
     from: 0, to: 0, t0: 0, dur: 0,
     state: 'work', until: 1 + rnd() * 3, dir: 1, box: null,
   }));

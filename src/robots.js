@@ -35,12 +35,13 @@ const HEADS = {
     rows: ['▗▄███▄▖', '╭─────╮', '│`E`E`│', '╰─┬─┬─╯'],
     mask: ['aaaaaaa', 'bbbbbbb', 'bbbbbbb', 'bbbbbbb'],
   },
+  // White hard hat: the site foreman (OPS wears the amber one).
+  whitehat: {
+    rows: ['▗▄███▄▖', '╭─────╮', '│`E`E`│', '│`MMM`│', '╰─┬─┬─╯'],
+    mask: ['wwwwwww', 'bbbbbbb', 'bbbbbbb', 'bbbbbbb', 'bbbbbbb'],
+  },
   visor: { rows: ['┏━━┷━━┓', '┃VVVVV┃', '┃`MMM`┃', '┗━┯━┯━┛'] },
   mono: { rows: ['╭──┸──╮', '│``E``│', '│`MMM`│', '╰─┬─┬─╯'] },
-  split: {
-    rows: ['╭──┸──╮', '│`E`E`│', '│`MMM`│', '╰─┬─┬─╯'],
-    mask: ['cccbyyy', 'cccbyyy', 'cccbyyy', 'cccbyyy'],
-  },
 };
 
 // shoulder: row the arms hang from. feet: leg columns relative to the body's left edge.
@@ -65,7 +66,7 @@ export function makeRobot({
   antenna = 'tip',
   head = 'round',
   body = 'std',
-  legs = 'legs', // legs | treads | wheel
+  legs = 'legs', // legs | treads
   tool = null,
   bodyColor = C.steel,
   accent = C.amber,
@@ -212,12 +213,6 @@ export function makeRobot({
       for (let i = 1; i < 10; i++) g.put(x0 + i, ly, (i + step) % 3 === 0 ? '╤' : '═', grey);
       g.put(x0 + 10, ly, '╮', grey);
       g.text(x0, ly + 1, '╰◉─◉─◉─◉─◉╯', grey);
-    } else if (legs === 'wheel') {
-      const c = x + Math.floor(W / 2);
-      g.text(c - 3, ly, '╰──┬──╯', bc);
-      g.put(c - 1, ly + 1, '(', grey);
-      g.put(c, ly + 1, '│╱─╲'[((Math.floor(roll) % 4) + 4) % 4], C.steel);
-      g.put(c + 1, ly + 1, ')', grey);
     }
 
     if (tool && TOOLS[tool]) TOOLS[tool](g, { lh, rh, t, asleep, accent, pose });
@@ -231,6 +226,24 @@ export function makeRobot({
 
 // Tools are drawn relative to a hand. Most go in the right hand.
 const TOOLS = {
+  // The architect's plans: rolled up while walking, held open to check the work, with a
+  // small marker tracing the grid.
+  blueprint(g, { rh, t, asleep, pose }) {
+    const c = asleep ? C.greyDark : C.cyan;
+    if (pose.arm !== 'reach') {
+      g.text(rh.x + 1, rh.y, '═╡', c);
+      return;
+    }
+    const x = rh.x + 1;
+    g.text(x, rh.y - 1, '┌─┬─┐', c);
+    g.text(x, rh.y, '├─┼─┤', c);
+    g.text(x, rh.y + 1, '└─┴─┘', c);
+    if (asleep) return;
+    const spots = [[0, -1], [2, -1], [4, -1], [4, 0], [2, 0], [0, 0], [0, 1], [2, 1], [4, 1]];
+    const [dx, dy] = spots[((Math.floor(t * 2.5) % spots.length) + spots.length) % spots.length] ?? spots[0];
+    g.put(x + dx, rh.y + dy, '•', C.white);
+  },
+
   clipboard(g, { rh, asleep }) {
     const c = asleep ? C.greyDark : C.amber;
     g.text(rh.x + 1, rh.y - 1, '┌┴┐', c);
@@ -265,10 +278,6 @@ const TOOLS = {
     g.put(rh.x + 1, rh.y, '(', asleep ? C.greyDark : C.steel);
     [C.green, C.amber, C.cyan].forEach((c, i) => g.put(rh.x + 2 + i, rh.y, '•', asleep ? C.greyDark : c));
     g.put(rh.x + 5, rh.y, ')', asleep ? C.greyDark : C.steel);
-  },
-
-  bridge(g, { rh, asleep }) {
-    g.put(rh.x + 1, rh.y, '↔', asleep ? C.greyDark : C.white);
   },
 
   magnifier(g, { rh, asleep }) {

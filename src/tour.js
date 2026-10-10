@@ -139,12 +139,12 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
     async build() {
       world.light('build');
       view('build');
-      await show('Backend, frontend, and the robot who does both.');
+      await show('The backend and frontend get built. The architect checks it against the plan.');
       await carry(hero, 'build');
       st.build.weld(hero, now, 2.6);
       say('backend', 'schema migrated.');
       await wait(1.6);
-      say('fullstack', 'on my way!');
+      say('architect', 'matches the plan.');
       await wait(1.8);
       await show('Built.');
       await wait(1.2);

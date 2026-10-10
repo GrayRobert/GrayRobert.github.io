@@ -208,7 +208,9 @@ const samples = [];
 let last = performance.now();
 
 function frame(nowMs) {
-  const dt = Math.min(0.05, (nowMs - last) / 1000);
+  // A frame's timestamp can be a touch earlier than the last performance.now(), so clamp at
+  // zero: a negative step would wind the clock back below zero and break timed animations.
+  const dt = Math.max(0, Math.min(0.05, (nowMs - last) / 1000));
   last = nowMs;
   requestAnimationFrame(frame);
   if (plain) return; // nothing to draw behind the plain CV

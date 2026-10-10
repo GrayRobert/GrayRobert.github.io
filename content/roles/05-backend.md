@@ -9,6 +9,7 @@ tools: Java, Python, Perl, Spring Boot, Django, PostgreSQL, MSSQL, MySQL
 - Spring Boot, Hibernate, MyBatis and Django
 - PostgreSQL, MSSQL and MySQL
 - API design, service-oriented architecture and microservices
+- Builds data pipelines, BI, and statistical and machine learning models
 - Helped move the Eumom platform from Classic ASP to .NET and C#
 
 ## Story

@@ -13,3 +13,11 @@ tools: JavaScript, TypeScript, React, Next.js, Vue.js, HTML, CSS
 ## Story
 
 Robert taught himself web development and never stopped. The latest round was moving business-critical booking flows onto modern React front ends that load in under a second.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- pixel perfect.
+- dark mode, obviously.
+- snaps right in.

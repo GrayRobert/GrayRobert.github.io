@@ -2,6 +2,7 @@
 name: Robert Gray
 role: CTO and Engineering Manager
 tagline: Robert Gray can run the whole dark factory. A fleet of AI agents, a real team, or every station himself.
+description: Robert Gray, CTO and Engineering Manager. He can run the whole dark factory: a fleet of AI agents, a real team, or every station himself.
 ---
 ## Summary
 

@@ -13,3 +13,11 @@ tools: GDPR, ISO 27001, Incident response, AWS, GCP
 ## Story
 
 Security is part of Robert's day job, not a side project. He is the Data Protection Officer, runs ISO 27001-aligned controls, and keeps watch out of hours.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- access denied.
+- nice try.
+- perimeter secure.

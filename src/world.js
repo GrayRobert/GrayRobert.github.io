@@ -12,6 +12,10 @@ import { createStations } from './stations.js';
 import { createNoc } from './noc.js';
 import { createLab } from './lab.js';
 import { createMeetings } from './meetings.js';
+import content from 'virtual:content';
+
+// The power-on hint text lives in content/tour.md, under "power".
+const hint = (key) => content.tour?.power?.[key] ?? `[missing power.${key}]`;
 import {
   WORLD_COLS, FLOOR_Y, BELT_Y, BELT_X0, BELT_X1, PKG_W, ZONES, STATION, zoneAt, isNarrow,
 } from './layout.js';
@@ -509,8 +513,8 @@ export function createWorld({ seed = 7, audio = null } = {}) {
   function drawPowerHint(g, t) {
     // Narrow screens get the same message on shorter lines.
     const lines = isNarrow()
-      ? [['pull the PWR lever', C.amber], ['to start the factory', C.amber], ['enter works too · sound on', C.steel]]
-      : [['pull the PWR lever to start the factory', C.amber], ['or press enter  ·  sound on', C.steel]];
+      ? [[hint('narrow-1'), C.amber], [hint('narrow-2'), C.amber], [hint('narrow-3'), C.steel]]
+      : [[hint('wide-1'), C.amber], [hint('wide-2'), C.steel]];
     const inner = Math.max(...lines.map(([s]) => s.length));
     const w = inner + 6;
     const x0 = 32, y0 = 27;

@@ -8,6 +8,8 @@ import { shimmer, beamIn } from './transporter.js';
 import { CREW_FLOOR, CATWALK, OFFICE, WORLD_COLS } from './layout.js';
 
 const TITLES = Object.fromEntries(content.agents.map((a) => [a.id, a.title]));
+// What each robot says now and then: the "## Says" list in its file in content/roles/.
+const SAYS = Object.fromEntries(content.agents.map((a) => [a.id, a.says?.length ? a.says : ['...']]));
 
 // zone: which part of the line wakes it. wake: extra delay after its zone lights up.
 // min/max: patrol range (left x). arm: pose while working.
@@ -15,54 +17,44 @@ const ROLES = [
   {
     id: 'ceo', zone: 'why', wake: 0.3, feet: OFFICE, min: 17, max: 19, speed: 4, arm: 'down',
     robot: { label: 'CEO', antenna: 'dish', head: 'dome', body: 'tall', tool: 'clipboard', accent: C.amber },
-    quips: ['love the energy.', 'vision: delivered.', 'numbers look good.'],
   },
   {
     id: 'cto', zone: 'plan', wake: 0.2, feet: OFFICE, min: 76, max: 78, speed: 4, arm: 'down',
     robot: { label: 'CTO', antenna: 'tip', head: 'monitor', accent: C.green },
-    quips: ['all green.', 'hmm. one odd log line.', 'keep it simple.', 'checking. again.'],
   },
   {
     id: 'pm', zone: 'plan', wake: 0.5, bubble: 'left', feet: CATWALK, min: 108, max: 124, speed: 7, arm: 'up', walkArm: 'up',
     robot: { label: 'PM', antenna: 'twin', head: 'square', tool: 'kanban', accent: C.amber },
-    quips: ['blocker cleared.', 'on track.', 'milestone!'],
   },
   {
     id: 'design', zone: 'design', wake: 0.3, bubble: 'left', feet: CATWALK, min: 142, max: 158, speed: 5, arm: 'up', sketches: true,
     robot: { label: 'UX', antenna: 'none', head: 'beret', body: 'slim', tool: 'stylus', accent: C.cyan },
-    quips: ['one char to the left.', 'more whitespace.', 'better.'],
   },
   {
     id: 'backend', zone: 'build', wake: 0.3, feet: CREW_FLOOR, min: 193, max: 196, speed: 4, arm: 'reach',
     robot: { label: 'API', antenna: 'tip', head: 'goggles', body: 'wide', accent: C.green },
-    quips: ['schema migrated.', 'query is fast now.', 'pipes are flowing.'],
   },
   {
     id: 'frontend', zone: 'build', wake: 0.5, feet: CREW_FLOOR, min: 220, max: 222, speed: 4, arm: 'reach',
     robot: { label: 'UI', antenna: 'twin', head: 'round', tool: 'palette', accent: C.cyan },
-    quips: ['pixel perfect.', 'dark mode, obviously.', 'snaps right in.'],
   },
   {
     // The foreman: walks the build floor with the plans, checking the work at each end.
     id: 'architect', zone: 'build', wake: 0.7, feet: CREW_FLOOR, min: 179, max: 246, stops: [179, 246], speed: 9, arm: 'reach', front: true,
     robot: { label: 'ARCH', antenna: 'none', head: 'whitehat', tool: 'blueprint', accent: C.cyan },
-    quips: ['matches the plan.', 'check the boundaries.', 'one small change.'],
   },
   {
     id: 'security', zone: 'secure', wake: 0.3, feet: CREW_FLOOR, min: 280, max: 285, speed: 4, arm: 'down',
     robot: { label: 'SEC', antenna: 'none', head: 'visor', body: 'heavy', tool: 'shield', accent: C.red },
-    quips: ['access denied.', 'nice try.', 'perimeter secure.'],
   },
   {
     id: 'qa', zone: 'test', wake: 0.3, feet: CREW_FLOOR, min: 318, max: 321, speed: 4, arm: 'reach',
     robot: { label: 'QA', antenna: 'none', head: 'mono', tool: 'magnifier', accent: C.green, eye: '◎' },
-    quips: ['found one.', 'not ignoring that.', 'passes. for now.'],
   },
   {
     // Lives in the NOC. The NOC moves it (desk, bed, the 2am dash), so it never patrols.
     id: 'devops', zone: 'noc', wake: 0, bubble: 'above', feet: CREW_FLOOR, min: 416, max: 416, speed: 6, arm: 'reach', puppet: true,
     robot: { label: 'OPS', antenna: 'none', head: 'hardhat', body: 'stocky', legs: 'treads', tool: 'plug', accent: C.amber },
-    quips: ['deploying.', 'it is 2am somewhere.', 'rack is happy.'],
   },
 ];
 
@@ -73,6 +65,7 @@ export const BIN_X = 334; // drawn by the TEST station
 export function createCrew(rnd, audio) {
   const agents = ROLES.map((r) => ({
     ...r,
+    quips: SAYS[r.id] ?? ['...'],
     draw: makeRobot(r.robot),
     // Robots with set stops start at one, so they never start on top of a neighbour.
     x: r.stops ? r.stops[0] : r.min + Math.floor(rnd() * (r.max - r.min + 1)),

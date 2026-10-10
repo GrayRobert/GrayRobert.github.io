@@ -15,3 +15,11 @@ tools: Java, Python, Perl, Spring Boot, Django, PostgreSQL, MSSQL, MySQL
 ## Story
 
 Robert started at Topflight as a systems and software engineer in 2011, and the reservation systems he now runs are ones he has worked on from the inside. He led their move from a legacy monolith to services and microservices.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- schema migrated.
+- query is fast now.
+- pipes are flowing.

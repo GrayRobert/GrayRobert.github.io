@@ -19,7 +19,12 @@ function content() {
     load: (key) => (key === '\0' + id ? `export default ${JSON.stringify(loadContent())};` : null),
     transformIndexHtml(html) {
       const making = fs.readFileSync('content/making.md', 'utf8');
-      return html.replace('<!-- CV -->', renderCv(loadContent())).replace('<!-- MAKING -->', renderMarkdown(making));
+      const content = loadContent();
+      const description = (content.person.description ?? '').replace(/"/g, '&quot;');
+      return html
+        .replace('<!-- CV -->', renderCv(content))
+        .replace('<!-- MAKING -->', renderMarkdown(making))
+        .replaceAll('%DESCRIPTION%', description);
     },
     configureServer(server) {
       server.watcher.add(contentDir);

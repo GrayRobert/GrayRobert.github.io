@@ -14,3 +14,11 @@ tools: AWS, GCP, Docker, Jenkins, Linux, Networking
 ## Story
 
 Robert is first responder for the systems he built. He has redeployed at 2am after a memory leak and taken heap dumps to find out exactly why it happened, so it wouldn't happen again.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- deploying.
+- it is 2am somewhere.
+- rack is happy.

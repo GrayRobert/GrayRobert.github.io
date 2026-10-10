@@ -13,3 +13,11 @@ tools: Design workshops, React, HTML, CSS
 ## Story
 
 Good products start in a workshop, not a code editor. Robert runs the discovery sessions, then works with UI/UX people to turn them into interfaces customers can use without thinking.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- one char to the left.
+- more whitespace.
+- better.

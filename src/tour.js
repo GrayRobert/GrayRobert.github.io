@@ -3,6 +3,11 @@
 // the state the earlier scenes would have left it in. window.deck drives it by hand.
 
 import { PKG_W, STATION, ZONES, WORLD_COLS, view as screen, viewFor } from './layout.js';
+import content from 'virtual:content';
+
+// Every caption and tour line comes from content/tour.md, looked up by scene and key.
+// A missing key shows up on screen so it is easy to spot.
+const T = (scene, key) => content.tour?.[scene]?.[key] ?? `[missing ${scene}.${key}]`;
 
 export const SCENES = [
   { id: 'boot', name: 'power' },
@@ -62,18 +67,18 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
   const scripts = {
     async boot() {
       view('base', { dur: 0 });
-      await show(['power ............ ok', 'line 01 .......... online', 'crew ............. asleep'], { log: true });
+      await show([T('boot', 'log-1'), T('boot', 'log-2'), T('boot', 'log-3')], { log: true });
       await wait(3.6);
-      await show('Lights out. This is the dark factory.');
+      await show(T('boot', 'lights'));
       await wait(2.4);
     },
 
     async overview() {
       // Robert's own words: why this CV is a factory.
       camera.to(WORLD_COLS / 2, { zoom: Math.min(1, screen.cols / WORLD_COLS), dur: 2.4, now });
-      await show('I believe smart, well-intentioned people can use AI to run an entire factory of agents that build and ship quality software.');
-      await show('Agents are no different from people. They make mistakes, over-bake, take shortcuts and ignore patterns.');
-      await show('So I designed my CV as a dark factory: ten robots, ten core roles in software delivery, and how my experience ties them together.');
+      await show(T('overview', 'belief'));
+      await show(T('overview', 'agents'));
+      await show(T('overview', 'why-factory'));
       await readable();
       // Energise: ROB beams out, and reappears in the boardroom as the CEO.
       presenter?.beamOut(now);
@@ -88,110 +93,110 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       view('why');
       world.crew.beamIn('ceo', now + 0.5);
       wait(0.5).then(() => audio?.beam(1.8), () => {});
-      await show('Every idea starts at the WHY gate.');
+      await show(T('why', 'start'));
       const bad = world.spawn({ bad: true, label: '{ hype }' });
       world.moveTo(bad, stop('why'));
       await until(() => bad.x >= 20);
       hero = world.spawn();
       await until(() => world.arrived(bad, stop('why')));
-      await show('Who uses it? Will they pay? Is it worth it? Is it safe? Is it allowed?');
+      await show(T('why', 'questions'));
       st.why.check(bad, false, now, 0.38);
       await wait(st.why.duration(0.38) + 0.4);
-      await show('We asked. Nobody wants it, nobody will pay. Laser.');
+      await show(T('why', 'rejected'));
       st.why.zap(bad, now);
       await wait(0.8);
-      say('ceo', 'next.');
+      say('ceo', T('why', 'ceo-after-laser'));
       await wait(1.2);
-      await show('Next.');
+      await show(T('why', 'next'));
       await carry(hero, 'why');
-      await show('Same questions. This time, nobody knows yet.');
+      await show(T('why', 'unknown'));
       st.why.check(hero, 'experiment', now, 0.3);
       await wait(st.why.duration(0.3) + 0.4);
       // Not knowing is not a no: the idea drops through a trapdoor into the lab.
-      await show("Not knowing isn't a no. It goes to the lab.");
+      await show(T('why', 'to-lab'));
       st.lab.take(hero, now, { outcome: 'promote', dur: 4 });
       await until(() => st.lab.phase === 'testing');
-      await show('A small, time-boxed experiment. Still secure, still compliant.');
+      await show(T('why', 'experiment'));
       await until(() => st.lab.phase === 'idle' && world.packages.includes(hero), 15);
-      await show('It found real users. Promoted to the line.');
-      say('ceo', 'love it.');
+      await show(T('why', 'promoted'));
+      say('ceo', T('why', 'ceo-after-promoted'));
       await wait(2.4);
     },
 
     async plan() {
       world.light('plan');
       view('plan');
-      await show('Approved ideas get a plan.');
+      await show(T('plan', 'start'));
       await carry(hero, 'plan');
-      say('cto', 'build, not buy.');
+      say('cto', T('plan', 'cto-decides'));
       await wait(1.8);
       st.plan.stamp(hero, now);
       await wait(0.9);
-      await show('The CTO picks the approach. The PM clears the blockers.');
-      say('pm', 'on track.');
-      await show('The roadmap goes to a steering group early, so the people paying for it can steer it.');
+      await show(T('plan', 'roles'));
+      say('pm', T('plan', 'pm-update'));
+      await show(T('plan', 'steering'));
       await wait(2.8);
     },
 
     async design() {
       world.light('design');
       view('design');
-      await show('Then it gets designed, so people can actually use it.');
+      await show(T('design', 'start'));
       await carry(hero, 'design');
       st.design.project(hero, now, 1.8);
-      say('design', 'more whitespace.');
+      say('design', T('design', 'design-note'));
       await wait(3);
     },
 
     async build() {
       world.light('build');
       view('build');
-      await show('The backend and frontend get built. The architect checks it against the plan.');
+      await show(T('build', 'start'));
       await carry(hero, 'build');
       st.build.weld(hero, now, 2.6);
-      say('backend', 'schema migrated.');
+      say('backend', T('build', 'backend-update'));
       await wait(1.6);
-      say('architect', 'matches the plan.');
+      say('architect', T('build', 'architect-check'));
       await wait(1.8);
-      await show('Built in small loops. Every sprint ends in a demo: show it, get feedback, refine, repeat.');
+      await show(T('build', 'sprints'));
       await wait(1.2);
     },
 
     async secure() {
       world.light('secure');
       view('secure');
-      await show('Nothing ships without security.');
+      await show(T('secure', 'start'));
       await carry(hero, 'secure');
       st.secure.attack(6, now);
       await wait(0.8);
       st.secure.raiseDome(true);
-      say('security', 'nice try.');
+      say('security', T('secure', 'security-warning'));
       await until(() => !st.secure.busy, 6);
       st.secure.scan(hero, now, 1.2);
       await wait(1.4);
       st.secure.raiseDome(false);
-      await show('Intruders bounced. Signed, sealed, scanned.');
+      await show(T('secure', 'done'));
       await wait(2);
     },
 
     async test() {
       world.light('test');
       view('test');
-      await show('QA will not let one odd log line go.');
+      await show(T('test', 'start'));
       await carry(hero, 'test');
       st.test.scan(hero, now, { bug: true, dur: 1.4 });
       await wait(1.7);
-      say('qa', 'found one.');
+      say('qa', T('test', 'qa-finds'));
       await wait(1.8);
       st.test.fix(hero);
-      await show('Found it. Fixed it. Tested it.');
+      await show(T('test', 'fixed'));
       await wait(2.2);
     },
 
     async ship() {
       world.light('ship');
       view('ship');
-      await show('Then it ships.');
+      await show(T('ship', 'start'));
       await carry(hero, 'ship', STATION.ship - 8);
       st.ship.launch(hero, now);
       hero = null;
@@ -204,17 +209,17 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       view('noc');
       // The NOC runs its own story. At each beat it holds while the caption is read.
       st.noc.night(now, 4, 0); // in bed, clock stopped
-      await show('Shipping is not the end. Something has to keep it running.');
+      await show(T('noc', 'start'));
       await readable();
       st.noc.night(now, 4, 1.6); // let the clock run to 2am
       await until(() => st.noc.phase === 'alert', 10);
-      await show('2:00am. A memory leak. Heap at 98%.');
+      await show(T('noc', 'alert'));
       st.noc.hold(now, readyAt);
       await until(() => st.noc.phase === 'fix', 20);
-      await show('Up. Heap dump. Redeploy. Back to green.');
+      await show(T('noc', 'fix'));
       st.noc.hold(now, readyAt);
       await until(() => st.noc.phase === 'back', 20);
-      await show('Robert is first responder for what he builds.');
+      await show(T('noc', 'done'));
       await until(() => st.noc.phase === 'sleep', 15);
     },
 
@@ -222,7 +227,7 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       world.lightAll();
       world.setMode('free');
       camera.free = true;
-      await show('Your turn. Drag or scroll to look around. Click any robot to see the real CV behind it.');
+      await show(T('explore', 'start'));
     },
   };
 

@@ -13,3 +13,11 @@ tools: Microservices, Service-oriented architecture, API design, AWS, GCP, Docke
 ## Story
 
 Robert set the direction for replatforming Topflight's core systems, from a single legacy application to services with modern front ends. He still checks the work as it is built, whether it comes from his own team, from partners, or from AI agents.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- matches the plan.
+- check the boundaries.
+- one small change.

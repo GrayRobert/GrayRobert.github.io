@@ -14,3 +14,11 @@ tools: Technology strategy, Roadmaps, Vendor management, ICT governance
 ## Story
 
 Robert sits at the leadership table as well as the keyboard. He helps set the group's strategy, owns the technology that carries more than €50M a year, and plans five years out. His MSc research looked at what makes software outsourcing actually work.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- love the energy.
+- vision: delivered.
+- numbers look good.

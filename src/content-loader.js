@@ -19,7 +19,22 @@ export function loadContent(dir = 'content') {
     .filter((f) => f.endsWith('.md'))
     .sort()
     .map((f) => parseRole(f.replace(/^\d+-/, '').replace(/\.md$/, ''), read(path.join(roleDir, f))));
-  return { person, agents };
+  const tourFile = path.join(dir, 'tour.md');
+  const tour = fs.existsSync(tourFile) ? parseTour(read(tourFile)) : {};
+  return { person, agents, tour };
+}
+
+// tour.md: "## scene" headings, then "- key: text" lines.
+function parseTour(text) {
+  const out = {};
+  for (const [scene, body] of Object.entries(sections(text))) {
+    out[scene] = {};
+    for (const line of body.split('\n')) {
+      const m = line.match(/^- ([a-z0-9-]+): (.*)$/);
+      if (m) out[scene][m[1]] = m[2].trim();
+    }
+  }
+  return out;
 }
 
 function read(file) {
@@ -67,6 +82,7 @@ function parseRole(id, text) {
     skills: bullets(s.skills),
     story: paragraphs(s.story),
     tools: list(meta.tools),
+    says: bullets(s.says), // the robot's small talk in explore mode
   };
 }
 
@@ -87,6 +103,7 @@ function parseProfile(text) {
     name: meta.name,
     role: meta.role,
     tagline: meta.tagline,
+    description: meta.description,
     summary: paragraphs(s.summary),
     experience,
     education: bullets(s.education),

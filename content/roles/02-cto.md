@@ -14,3 +14,12 @@ tools: Java, Python, JavaScript, React, Perl, AWS, GCP
 ## Story
 
 Trained in sound technology and music performance, then ran support teams for a wireless ISP, administered systems for a national publisher and learned web development on the job. He joined Topflight in 2011 as a systems and software engineer, became technical project manager in 2012 and CTO in 2014. He's still hands-on.
+
+## Says
+
+What this robot says now and then in explore mode.
+
+- all green.
+- hmm. one odd log line.
+- keep it simple.
+- checking. again.

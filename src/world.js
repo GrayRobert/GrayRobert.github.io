@@ -11,6 +11,7 @@ import { createCrew, hash } from './crew.js';
 import { createStations } from './stations.js';
 import { createNoc } from './noc.js';
 import { createLab } from './lab.js';
+import { createMeetings } from './meetings.js';
 import {
   WORLD_COLS, FLOOR_Y, BELT_Y, BELT_X0, BELT_X1, PKG_W, ZONES, STATION, zoneAt, isNarrow,
 } from './layout.js';
@@ -140,6 +141,7 @@ export function createWorld({ seed = 7, audio = null } = {}) {
     promoted: (p) => { if (stations.why.run?.pkg === p) stations.why.show('pass'); },
   });
   stations.lab = lab;
+  const meetings = createMeetings();
   const noc = createNoc({ rnd, audio }, crew);
   noc.reset();
   stations.noc = noc;
@@ -299,6 +301,9 @@ export function createWorld({ seed = 7, audio = null } = {}) {
       lab.draw(g, t);
       lab.drawPackage(g, (gg, p, x, y) => drawPackageAt(gg, p, x, y, t));
     });
+    // People: a steering group under PLAN and a sprint demo under DESIGN.
+    zone('plan', () => meetings.drawSteering(g, t));
+    zone('design', () => meetings.drawDemo(g, t));
     zone('plan', () => s.plan.draw(g, t));
     zone('design', () => s.design.draw(g, t));
     zone('build', () => s.build.draw(g, t));

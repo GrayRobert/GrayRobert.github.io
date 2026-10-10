@@ -129,6 +129,7 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       await wait(0.9);
       await show('The CTO picks the approach. The PM clears the blockers.');
       say('pm', 'on track.');
+      await show('The roadmap goes to a steering group early, so the people paying for it can steer it.');
       await wait(2.8);
     },
 
@@ -139,6 +140,7 @@ export function createTour({ world, camera, ui, presenter = null, audio = null }
       await carry(hero, 'design');
       st.design.project(hero, now, 1.8);
       say('design', 'more whitespace.');
+      await show('Then small loops: demo it, get feedback, refine it, repeat.');
       await wait(3);
     },
 

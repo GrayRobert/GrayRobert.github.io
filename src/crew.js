@@ -58,6 +58,7 @@ const ROLES = [
   },
 ];
 
+const SKETCH_LIFE = 3.4; // seconds a sketch lasts, from first stroke to gone
 const DB_X = 209;
 const UI_X = 238;
 export const BIN_X = 334; // drawn by the TEST station
@@ -96,13 +97,14 @@ export function createCrew(rnd, audio) {
         Object.assign(a, { from: a.x, to, t0: t, dur: Math.abs(to - a.x) / a.speed + 0.5, dir: Math.sign(to - a.x), state: 'walk' });
       }
 
-      // The designer sketches boxes in the air while working.
+      // The designer sketches a small wireframe in the air while working, one at a time.
       if (a.sketches && a.state === 'work' && a.box && (a.nextSketch ?? 0) < t) {
-        a.nextSketch = t + 1.4 + rnd();
-        sketches.push({ x: a.box.rh.x + 3 + Math.floor(rnd() * 4), y: a.box.rh.y - 3 - Math.floor(rnd() * 3), w: 4 + Math.floor(rnd() * 3), born: t });
+        a.nextSketch = t + SKETCH_LIFE + 0.4 + rnd();
+        const pen = { x: a.box.rh.x + 2, y: a.box.rh.y - 2 };
+        sketches.push({ x: pen.x + 3, y: pen.y - 2, w: 9 + Math.floor(rnd() * 3), h: 4, pen, born: t });
       }
     }
-    for (let i = sketches.length - 1; i >= 0; i--) if (t - sketches[i].born > 2.6) sketches.splice(i, 1);
+    for (let i = sketches.length - 1; i >= 0; i--) if (t - sketches[i].born > SKETCH_LIFE) sketches.splice(i, 1);
 
     // Someone idle says something every few seconds.
     if (speaker && t > speaker.end) speaker = null;
@@ -218,18 +220,36 @@ export function createCrew(rnd, audio) {
     });
   }
 
+  // A wireframe drawn in the air: the outline traces itself behind a bright pen point,
+  // then a header bar, a line of content and a button fill in, it holds, and fades.
   function drawSketch(g, s, t) {
-    const age = (t - s.born) / 2.6;
-    const col = age < 0.6 ? C.cyan : C.cyanDim;
-    const drawn = Math.min(1, age * 3); // the box draws itself, then fades
-    const perimeter = s.w * 2 + 2;
-    const cells = [];
-    for (let i = 0; i < s.w; i++) cells.push([s.x + i, s.y, i === 0 ? '┌' : i === s.w - 1 ? '┐' : '─']);
-    cells.push([s.x + s.w - 1, s.y + 1, '┘']);
-    for (let i = s.w - 2; i > 0; i--) cells.push([s.x + i, s.y + 1, '─']);
-    cells.push([s.x, s.y + 1, '└']);
-    cells.slice(0, Math.ceil(drawn * perimeter)).forEach(([x, y, ch]) => g.put(x, y, ch, col));
+    const k = (t - s.born) / SKETCH_LIFE;
+    const col = k < 0.8 ? C.cyan : C.cyanDim;
+    const { x, y, w, h } = s;
+    const outline = [];
+    for (let i = 0; i < w; i++) outline.push([x + i, y, i === 0 ? '┌' : i === w - 1 ? '┐' : '─']);
+    for (let j = 1; j < h - 1; j++) outline.push([x + w - 1, y + j, '│']);
+    for (let i = w - 1; i >= 0; i--) outline.push([x + i, y + h - 1, i === 0 ? '└' : i === w - 1 ? '┘' : '─']);
+    for (let j = h - 2; j > 0; j--) outline.push([x, y + j, '│']);
+
+    const traced = Math.ceil(Math.min(1, k / 0.4) * outline.length);
+    outline.slice(0, traced).forEach(([cx, cy, ch]) => g.put(cx, cy, ch, col));
+
+    if (k < 0.4) {
+      // the pen point, with a faint line back to the stylus
+      const [hx, hy] = outline[Math.max(0, traced - 1)];
+      g.put(hx, hy, '•', C.white);
+      g.put(Math.round((hx + s.pen.x) / 2), Math.round((hy + s.pen.y) / 2), '·', C.cyanDim);
+    } else {
+      // the inside fills in: header bar, a line of content, a button
+      const fill = Math.min(1, (k - 0.4) / 0.25);
+      const bar = Math.ceil(fill * (w - 2));
+      g.text(x + 1, y + 1, '▀'.repeat(bar), col);
+      if (fill > 0.5) g.text(x + 2, y + 2, '──', k < 0.8 ? C.cyanDim : C.greyDark);
+      if (fill >= 1) g.text(x + w - 4, y + 2, '▐█▌', k < 0.8 ? C.green : C.greenDark);
+    }
   }
+
 
   return {
     agents,

@@ -20,7 +20,7 @@ export const SCENES = [
 const EXPLORE = SCENES.length - 1;
 const CANCEL = Symbol('cancel');
 
-export function createTour({ world, camera, ui }) {
+export function createTour({ world, camera, ui, presenter = null, audio = null }) {
   let index = -1;
   let token = 0;
   let waits = [];
@@ -75,6 +75,10 @@ export function createTour({ world, camera, ui }) {
       await show('Agents are no different from people. They make mistakes, over-bake, take shortcuts and ignore patterns.');
       await show('So I designed my CV as a dark factory: ten robots, ten core roles in software delivery, and how my experience ties them together.');
       await readable();
+      // Energise: ROB beams out, and reappears in the boardroom as the CEO.
+      presenter?.beamOut(now);
+      audio?.beam();
+      await wait(1.7);
       view('why', { dur: 2 });
       await wait(2);
     },
@@ -82,6 +86,8 @@ export function createTour({ world, camera, ui }) {
     async why() {
       world.light('why');
       view('why');
+      world.crew.beamIn('ceo', now + 0.5);
+      wait(0.5).then(() => audio?.beam(1.8), () => {});
       await show('Every idea starts at the WHY gate.');
       const bad = world.spawn({ bad: true, label: '{ hype }' });
       world.moveTo(bad, stop('why'));

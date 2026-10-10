@@ -6,6 +6,9 @@
 import { createGrid, C } from './grid.js';
 import { createRenderer } from './renderer.js';
 import { makeRobot, W } from './robots.js';
+import { shimmer, beamOut } from './transporter.js';
+
+const BEAM = 1.6; // seconds to beam out
 
 const COLS = W + 2;
 const ROWS = 13;
@@ -17,6 +20,7 @@ export function createPresenter(stage, mainRenderer, captionEl) {
   const rob = makeRobot({ label: 'ROB', antenna: 'tip', head: 'monitor', accent: C.green });
   let visible = false;
   let since = 0;
+  let beamAt = null; // when ROB started beaming out
 
   // A fixed spot that doesn't follow the caption as it grows. Wide screens: just left of
   // the widest the caption can get, standing on its baseline. Narrow screens: centred,
@@ -42,10 +46,20 @@ export function createPresenter(stage, mainRenderer, captionEl) {
       if (on === visible) return;
       visible = on;
       since = t;
+      beamAt = null;
       renderer.layer.classList.toggle('on', on);
     },
+    // Energise: ROB dissolves into sparkle and is gone.
+    beamOut(t) { beamAt = t; },
+    get beamAt() { return beamAt; },
     draw(t, talking) {
       if (!visible) return;
+      const p = beamAt === null ? 0 : (t - beamAt) / BEAM;
+      if (p >= 1) {
+        grid.clear();
+        renderer.paint();
+        return;
+      }
       place();
       grid.clear();
       const blink = !talking && (t * 0.6) % 1 < 0.06;
@@ -57,6 +71,10 @@ export function createPresenter(stage, mainRenderer, captionEl) {
         tip: Math.floor(t * 2) % 2 === 0,
         arm: talking && t - since < 1.4 ? 'wave' : 'down', // a wave hello as he starts
       });
+      if (beamAt !== null) {
+        const { solid, sparkle } = beamOut(p);
+        shimmer(grid, { x: 0, y: 0, w: COLS, h: ROWS }, solid, sparkle, t, 7);
+      }
       renderer.paint();
     },
   };

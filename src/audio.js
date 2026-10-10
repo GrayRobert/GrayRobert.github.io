@@ -202,6 +202,36 @@ export function createAudio() {
       if (!ctx) return;
       tone(150, 0.25, 0.05, 'sawtooth');
     },
+    // Transporter: a high chord with a fast tremolo that swells and fades.
+    beam(dur = 1.6) {
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const out = ctx.createGain();
+      out.gain.setValueAtTime(0, t);
+      out.gain.linearRampToValueAtTime(0.035, t + dur * 0.3);
+      out.gain.linearRampToValueAtTime(0.035, t + dur * 0.7);
+      out.gain.linearRampToValueAtTime(0, t + dur);
+      const trem = ctx.createGain();
+      const lfo = ctx.createOscillator();
+      const depth = ctx.createGain();
+      lfo.frequency.value = 22;
+      depth.gain.value = 0.5;
+      trem.gain.value = 0.5;
+      lfo.connect(depth).connect(trem.gain);
+      trem.connect(out).connect(master);
+      for (const f of [1046, 1318, 1568, 2093]) {
+        const o = ctx.createOscillator();
+        o.frequency.setValueAtTime(f, t);
+        o.frequency.linearRampToValueAtTime(f * 1.02, t + dur);
+        o.connect(trem);
+        o.start(t);
+        o.stop(t + dur);
+      }
+      lfo.start(t);
+      lfo.stop(t + dur);
+      burstNoise(dur, 6000, 0.02);
+    },
+
     launch() {
       if (!ctx) return;
       sweep(80, 600, 1.1, 0.07);

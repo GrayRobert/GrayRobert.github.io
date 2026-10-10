@@ -4,6 +4,7 @@
 import { C } from './grid.js';
 import { makeRobot, W } from './robots.js';
 import content from 'virtual:content';
+import { shimmer, beamIn } from './transporter.js';
 import { CREW_FLOOR, CATWALK, OFFICE, WORLD_COLS } from './layout.js';
 
 const TITLES = Object.fromEntries(content.agents.map((a) => [a.id, a.title]));
@@ -139,6 +140,7 @@ export function createCrew(rnd, audio) {
     list.sort((a, b) => (a.front ? 1 : 0) - (b.front ? 1 : 0));
     for (const a of list) {
       if (a.hidden) continue; // tucked up in bed: the NOC draws it
+      if (a.beam && t < a.beam.t0) continue; // not beamed in yet: the spot is empty
       const lit = awake(a);
       const walking = a.state === 'walk';
       const phase = walking ? Math.floor(Math.abs(a.x - a.from) / 1.6) % 4 : 0;
@@ -162,6 +164,15 @@ export function createCrew(rnd, audio) {
         roll: a.x * 1.5,
         highlight: hover === a.id,
       })));
+      if (a.beam) {
+        // Materialising: sparkle first, then the robot forms out of it.
+        const p = (t - a.beam.t0) / a.beam.dur;
+        if (p >= 1) a.beam = null;
+        else {
+          const { solid, sparkle } = beamIn(p);
+          shimmer(g, { x: a.box.x, y: a.box.y, w: W + 4, h: a.box.h }, solid, sparkle, t, a.id.length * 13);
+        }
+      }
       if (lit) hits.push({ id: a.id, ...a.box });
       if (hover === a.id) {
         const tag = `▾ ${TITLES[a.id] ?? a.robot.label}`;
@@ -244,6 +255,11 @@ export function createCrew(rnd, audio) {
       a.until = Math.max(a.until, t + hold);
     },
     hush() { speaker = null; },
+    // Beam a robot in, Star Trek style, starting at time t.
+    beamIn(id, t, dur = 1.8) {
+      const a = agents.find((r) => r.id === id);
+      if (a) a.beam = { t0: t, dur };
+    },
   };
 }
 

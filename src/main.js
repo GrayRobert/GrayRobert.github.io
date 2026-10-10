@@ -39,8 +39,8 @@ const audio = createAudio();
 const world = createWorld({ seed: Number(params.get('seed') ?? 7), audio });
 const cards = createCards();
 const ui = createTourUI((i) => tour.go(i), () => tour.skip(), () => setPaused(!paused));
-const tour = createTour({ world, camera, ui });
 const presenter = createPresenter(stage, renderer, ui.captionEl);
+const tour = createTour({ world, camera, ui, presenter, audio });
 const hud = createLeverPanel({ onPower: togglePower, onSound: toggleSound, soundOn: !audio.muted });
 const soundToggle = document.getElementById('sound-toggle');
 showSound();
@@ -325,7 +325,7 @@ window.addEventListener('hashchange', openFromHash);
 if (params.has('fps')) stats.hidden = false;
 if (params.has('nocrt')) stage.classList.remove('crt');
 
-window.factory = { grid, renderer, world, camera, tour, audio, perf, get t() { return t; }, setPlain, togglePower };
+window.factory = { grid, renderer, world, camera, tour, audio, presenter, perf, get t() { return t; }, setPlain, togglePower };
 // A small deck-style navigator, as in the talk that inspired this, for debugging.
 window.deck = {
   goto: (id) => tour.goto(id),

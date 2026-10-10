@@ -27,7 +27,9 @@ for (const vp of viewports) {
   for (const [name, query] of mine) {
     await page.goto(`http://localhost:5199/?${query}`);
     await page.waitForFunction(() => window.factory && (window.factory.perf.frames > 30 || document.body.classList.contains('plain')));
-    await page.waitForTimeout(2500);
+    // wait=N in the query shoots a live run N seconds in, instead of the usual 2.5s.
+    const live = Number(new URLSearchParams(query.split('#')[0]).get('wait') ?? 0);
+    await page.waitForTimeout(live ? live * 1000 : 2500);
     const file = `shots/${name}-${tag}.png`;
     await page.screenshot({ path: file, fullPage: query.includes('#cv') });
     const stats = await page.evaluate(() => ({ ...window.factory.perf, world: window.factory.world.stats, cell: window.factory.renderer.cell }));
